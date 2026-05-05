@@ -1,0 +1,75 @@
+services:
+  nginx:
+    image: ${PRINTLAB_NGINX_IMAGE:?PRINTLAB_NGINX_IMAGE is required}
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    volumes:
+      - public-storage-data:/var/www/html/public/storage:ro
+    depends_on:
+      - app
+
+  app:
+    image: ${PRINTLAB_APP_IMAGE:?PRINTLAB_APP_IMAGE is required}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DB_HOST: mysql
+      REDIS_HOST: redis
+    volumes:
+      - storage-data:/var/www/html/storage
+      - public-storage-data:/var/www/html/storage/app/public
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  queue:
+    image: ${PRINTLAB_APP_IMAGE:?PRINTLAB_APP_IMAGE is required}
+    restart: unless-stopped
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    env_file:
+      - .env
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DB_HOST: mysql
+      REDIS_HOST: redis
+    volumes:
+      - storage-data:/var/www/html/storage
+      - public-storage-data:/var/www/html/storage/app/public
+    depends_on:
+      app:
+        condition: service_started
+
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-printlab}
+      MYSQL_USER: ${DB_USERNAME:-printlab}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is required}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+volumes:
+  mysql-data:
+  redis-data:
+  storage-data:
+  public-storage-data:

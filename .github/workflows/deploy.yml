@@ -1,0 +1,71 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: GHCR image tag to deploy. Use "latest" after the master build finishes, or a commit SHA tag.
+        required: true
+        default: latest
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy Docker stack
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve image names
+        id: images
+        run: |
+          repository="${GITHUB_REPOSITORY,,}"
+          tag="${{ inputs.image_tag }}"
+          echo "app=ghcr.io/${repository}/app:${tag}" >> "$GITHUB_OUTPUT"
+          echo "nginx=ghcr.io/${repository}/nginx:${tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload production compose file
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          source: 'docker-compose.prod.yml'
+          target: ${{ secrets.DEPLOY_PATH }}
+          overwrite: true
+          rm: false
+
+      - name: Deploy on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script_stop: true
+          script: |
+            cd "${{ secrets.DEPLOY_PATH }}"
+            test -f .env
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+            printf '%s\n' \
+              'PRINTLAB_APP_IMAGE=${{ steps.images.outputs.app }}' \
+              'PRINTLAB_NGINX_IMAGE=${{ steps.images.outputs.nginx }}' \
+              > .deploy.env
+            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml pull
+            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml up -d mysql redis
+            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml run --rm app php artisan package:discover --ansi
+            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml run --rm app php artisan migrate --force
+            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml up -d app nginx queue
+            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml exec -T app php artisan optimize:clear
+            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml exec -T app php artisan config:cache
+            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml exec -T app php artisan route:cache
+            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml exec -T app php artisan view:cache
