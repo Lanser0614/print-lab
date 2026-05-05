@@ -50,11 +50,11 @@ jobs:
           cp .env.example .env
           php artisan key:generate --ansi
 
-      - name: Run tests
-        run: php artisan test
-
       - name: Build frontend assets
         run: npm run build
+
+      - name: Run tests
+        run: php artisan test
 
       - name: Resolve image names
         id: images
