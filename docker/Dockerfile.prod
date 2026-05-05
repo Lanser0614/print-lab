@@ -57,8 +57,7 @@ RUN apt-get update \
 COPY --from=vendor --chown=www-data:www-data /app /var/www/html
 COPY --from=assets --chown=www-data:www-data /app/public/build /var/www/html/public/build
 
-RUN php artisan package:discover --ansi \
-    && mkdir -p \
+RUN mkdir -p \
         storage/app/public \
         storage/framework/cache/data \
         storage/framework/sessions \
