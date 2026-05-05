@@ -1,0 +1,83 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+.printlab-footer {
+    position: relative;
+    overflow: hidden;
+}
+
+.printlab-footer::before {
+    position: absolute;
+    top: 0;
+    left: -35%;
+    width: 35%;
+    height: 2px;
+    content: '';
+    background: linear-gradient(90deg, transparent, #777bb4, transparent);
+    animation: printlab-footer-scan 3.6s ease-in-out infinite;
+}
+
+.printlab-footer__content {
+    animation: printlab-footer-rise 700ms ease-out both;
+}
+
+.printlab-footer__pulse {
+    width: 0.5rem;
+    height: 0.5rem;
+    flex: 0 0 auto;
+    border-radius: 9999px;
+    background: #777bb4;
+    box-shadow: 0 0 0 0 rgba(119, 123, 180, 0.35);
+    animation: printlab-footer-pulse 2.2s ease-out infinite;
+}
+
+@keyframes printlab-footer-scan {
+    0% {
+        transform: translateX(0);
+    }
+
+    55%,
+    100% {
+        transform: translateX(390%);
+    }
+}
+
+@keyframes printlab-footer-rise {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes printlab-footer-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(119, 123, 180, 0.35);
+    }
+
+    70%,
+    100% {
+        box-shadow: 0 0 0 9px rgba(119, 123, 180, 0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .printlab-footer::before,
+    .printlab-footer__content,
+    .printlab-footer__pulse {
+        animation: none;
+    }
+}
