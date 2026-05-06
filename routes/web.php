@@ -34,3 +34,9 @@ Route::middleware('auth')
         Route::get('/designs/{design}/print', [DesignDownloadController::class, 'print'])->name('designs.print');
         Route::get('/design-assets/{asset}', [DesignDownloadController::class, 'asset'])->name('design-assets.show');
     });
+
+
+
+Route::get('/test', function () {
+   return 'ok';
+});
