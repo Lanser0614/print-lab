@@ -28,6 +28,8 @@ Add these in GitHub: `Settings -> Secrets and variables -> Actions -> New reposi
 - `DEPLOY_PORT`: SSH port. Optional if the server uses port `22`.
 - `GHCR_USERNAME`: GitHub username that can read the GHCR package.
 - `GHCR_TOKEN`: GitHub token with package read access.
+- `DEPLOY_DOMAIN`: production domain. Optional, defaults to `printlab.uz`.
+- `LETSENCRYPT_EMAIL`: email for Let's Encrypt notices. Optional, defaults to `admin@printlab.uz`.
 
 ## Server Requirements
 
@@ -39,6 +41,26 @@ The server must already have:
 - Port `80` available, or `HTTP_PORT` set in `.env`.
 
 The server does not need PHP, Composer, Node, or Nginx installed directly.
+
+The `Deploy Production` workflow automatically runs the domain setup script after the Docker stack is updated. It configures host Nginx + Certbot as a reverse proxy to the Docker `nginx` service on `127.0.0.1:8080`, and sets `APP_URL=https://printlab.uz` plus `HTTP_PORT=127.0.0.1:8080` in the server `.env`.
+
+You can also run the script manually on the server:
+
+```bash
+scp scripts/setup-production-domain.sh user@server:/tmp/setup-production-domain.sh
+ssh user@server
+
+DOMAIN=printlab.uz \
+EMAIL=admin@printlab.uz \
+DEPLOY_PATH=/var/www/printlab \
+bash /tmp/setup-production-domain.sh
+```
+
+Alternative domain/TLS setups:
+
+- Keep host Nginx + Certbot. This is the recommended single-server setup.
+- Put Caddy or Traefik in Docker for automatic certificates.
+- Use Cloudflare proxy or Cloudflare Tunnel if you do not want to expose the server directly.
 
 ## Required Server `.env`
 
