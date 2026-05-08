@@ -5,12 +5,27 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\ProductPrintArea;
 use App\Models\ProductVariant;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 class ConstructorController extends Controller
 {
     public function show(Request $request, Product $product): View
+    {
+        return $this->renderConstructor(
+            $request,
+            $product,
+            config('printlab.constructor_v2_enabled') ? 'constructor.v2' : 'constructor.show',
+        );
+    }
+
+    public function v2(Request $request, Product $product): View
+    {
+        return $this->renderConstructor($request, $product, 'constructor.v2');
+    }
+
+    private function renderConstructor(Request $request, Product $product, string $view): View
     {
         $variant = $this->resolveVariant($request, $product);
         $side = $request->string('side', 'front')->toString();
@@ -25,7 +40,7 @@ class ConstructorController extends Controller
             ->first()
             ?? ProductPrintArea::query()->where('product_variant_id', $variant->id)->firstOrFail();
 
-        return view('constructor.show', [
+        return view($view, [
             'product' => $product->load('variants'),
             'variant' => $variant,
             'printArea' => $printArea,
@@ -48,5 +63,16 @@ class ConstructorController extends Controller
             ->where('is_active', true)
             ->orderBy('id')
             ->firstOrFail();
+    }
+
+    public function localFallback(Request $request): mixed
+    {
+        abort_unless(app()->environment('local'), 404);
+
+        if (! Product::query()->where('slug', 'classic-t-shirt')->exists()) {
+            app(DatabaseSeeder::class)->run();
+        }
+
+        return redirect()->route('constructor.show', ['product' => 'classic-t-shirt']);
     }
 }

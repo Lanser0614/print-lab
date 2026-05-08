@@ -17,8 +17,8 @@ class ProductVariantFactory extends Factory
             'product_id' => Product::factory(),
             'color' => fake()->randomElement(['white', 'black', 'navy']),
             'size' => fake()->randomElement(['S', 'M', 'L', 'XL']),
-            'mockup_front_path' => 'products/tshirts/white/front.png',
-            'mockup_back_path' => null,
+            'mockup_front_path' => '/mockups/tshirts/white-front.png',
+            'mockup_back_path' => '/mockups/tshirts/white-back.png',
             'price_modifier' => 0,
             'is_active' => true,
         ];

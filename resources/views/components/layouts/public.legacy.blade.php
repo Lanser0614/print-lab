@@ -3,7 +3,6 @@
     'description' => null,
     'keywords'    => null,
     'ogImage'     => null,
-    'chrome'      => true,
 ])
 
 @php
@@ -29,11 +28,6 @@
     <meta name="keywords"    content="{{ $pageKeywords }}">
     <meta name="robots"      content="index, follow">
     <link rel="canonical"    href="{{ $canonical }}">
-
-    {{-- Fonts --}}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap">
 
     {{-- Hreflang --}}
     <link rel="alternate" hreflang="ru"      href="{{ route('language.switch', 'ru') }}">
@@ -69,7 +63,6 @@
 </head>
 <body class="bg-zinc-50 text-zinc-950 antialiased">
 
-@if ($chrome)
 <header class="border-b border-zinc-200 bg-white">
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
         <a href="{{ route('home') }}" class="shrink-0 text-xl font-semibold tracking-tight">PrintLab</a>
@@ -94,18 +87,15 @@
         </div>
     </div>
 </header>
-@endif
 
 {{ $slot }}
 
-@if ($chrome)
 <footer id="contacts" class="printlab-footer border-t border-zinc-200 bg-white">
     <div class="printlab-footer__content mx-auto flex max-w-7xl items-center gap-2 px-4 py-8 text-sm text-zinc-600">
         <span class="printlab-footer__pulse" aria-hidden="true"></span>
         <span>{{ __('site.footer_text') }} {{ __('site.footer_phone') }}: +998 90 123 45 67</span>
     </div>
 </footer>
-@endif
 
 </body>
 </html>

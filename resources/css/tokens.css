@@ -1,0 +1,26 @@
+@theme {
+    --color-pl-red: #e30613;
+    --color-pl-red-dark: #c00510;
+    --color-pl-red-light: #ff2233;
+    --color-pl-yellow: #ffd400;
+    --color-pl-black: #111111;
+    --color-pl-gray-900: #1a1a1a;
+    --color-pl-gray-700: #4a4a4a;
+    --color-pl-gray-500: #8a8a8a;
+    --color-pl-gray-300: #d0d0d0;
+    --color-pl-gray-200: #e5e5e5;
+    --color-pl-gray-100: #f4f4f4;
+    --color-pl-gray-50: #fafafa;
+    --color-pl-green: #1ea54a;
+    --color-pl-orange: #ff7a00;
+
+    --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+
+    --radius-pl-btn: 4px;
+    --radius-pl-card: 8px;
+    --radius-pl-pill: 999px;
+
+    --shadow-pl-card-hover: 0 6px 24px rgba(0, 0, 0, 0.10);
+    --shadow-pl-promo: 0 12px 24px rgba(0, 0, 0, 0.12);
+    --shadow-pl-fab: 0 6px 16px rgba(227, 6, 19, 0.4);
+}

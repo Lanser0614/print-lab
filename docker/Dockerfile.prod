@@ -34,6 +34,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY resources ./resources
+COPY design_handoff_printlab ./design_handoff_printlab
 COPY public ./public
 COPY vite.config.js ./
 RUN npm run build
