@@ -6,6 +6,7 @@ use App\Filament\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Products\Pages\EditProduct;
 use App\Filament\Resources\Products\Pages\ListProducts;
 use App\Filament\Resources\Products\Pages\ViewProduct;
+use App\Models\Category;
 use App\Models\Product;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -45,7 +46,7 @@ class ProductResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['variants.printAreas'])
+            ->with(['categories', 'variants.printAreas'])
             ->withCount('variants');
     }
 
@@ -82,6 +83,20 @@ class ProductResource extends Resource
                             ->numeric()
                             ->minValue(0)
                             ->required(),
+                        Select::make('categories')
+                            ->label('Категории')
+                            ->relationship(
+                                'categories',
+                                'name',
+                                modifyQueryUsing: fn (Builder $query): Builder => $query
+                                    ->where('scope', Category::SCOPE_PRODUCT)
+                                    ->where('is_active', true)
+                                    ->orderBy('sort_order')
+                                    ->orderBy('name'),
+                            )
+                            ->multiple()
+                            ->preload()
+                            ->native(false),
                         Toggle::make('is_active')
                             ->label('Активен')
                             ->default(true),
@@ -200,6 +215,11 @@ class ProductResource extends Resource
                     ->label('Тип')
                     ->formatStateUsing(fn ($state) => $state instanceof \App\Enums\ProductType ? $state->labelRu() : $state)
                     ->sortable(),
+                TextColumn::make('categories.name')
+                    ->label('Категории')
+                    ->badge()
+                    ->separator(',')
+                    ->toggleable(),
                 TextColumn::make('base_price')
                     ->label('Цена')
                     ->money('UZS', divideBy: 1)

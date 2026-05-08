@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>PrintLab — конструктор принтов</title>
+<meta name="viewport" content="width=1280">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Caveat:wght@700&family=JetBrains+Mono:wght@700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { background: #f0eee9; }
+  .pl-art { width: 1280px; background: white; }
+  .pl-art-constructor { width: 1280px; height: 820px; background: white; overflow: hidden; }
+  .pl-art-alt { width: 1280px; background: white; }
+  .pl-constructor { min-height: 0 !important; height: 764px; }
+  .pl-c-canvas-wrap { background: #f4f4f4; }
+
+  /* Variant: dark/edgy alt homepage */
+  .pl-alt {
+    --red: #ff2d2d;
+    --red-dark: #d80020;
+  }
+  .pl-alt body, .pl-alt .pl-art-alt { background: #0d0d0d; color: white; }
+  .pl-alt .pl-header { background: #0d0d0d; border-color: #1f1f1f; }
+  .pl-alt .pl-header .pl-logo-text { color: white; }
+  .pl-alt .pl-search { border-color: #ff2d2d; background: #1a1a1a; }
+  .pl-alt .pl-search input { background: #1a1a1a; color: white; }
+  .pl-alt .pl-search input::placeholder { color: #666; }
+  .pl-alt .pl-header-action { color: #aaa; }
+  .pl-alt .pl-nav { background: #0d0d0d; border-top: 1px solid #1f1f1f; border-bottom: 1px solid #1f1f1f; }
+  .pl-alt .pl-nav-cat { background: #ff2d2d; color: black; }
+  .pl-alt .pl-cat { background: #1a1a1a; color: white; }
+  .pl-alt .pl-cat:hover { background: #222; border-color: #ff2d2d; }
+  .pl-alt .pl-cat-from { color: #888; }
+  .pl-alt .pl-section-head h2 { color: white; }
+  .pl-alt .pl-card { background: #1a1a1a; border-color: #2a2a2a; color: white; }
+  .pl-alt .pl-card-img { background: #0d0d0d; }
+  .pl-alt .pl-card-name { color: white; }
+  .pl-alt .pl-card-price { color: white; }
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="shared.jsx"></script>
+<script type="text/babel" src="homepage.jsx"></script>
+<script type="text/babel" src="constructor.jsx"></script>
+<script type="text/babel" src="mobile.jsx"></script>
+
+<script type="text/babel">
+const { useState } = React;
+
+// Wrapper для главной с переходом в конструктор внутри артборда
+function HomeArtboard() {
+  const [view, setView] = useState('home');
+  if (view === 'constructor') {
+    return <Constructor onBack={() => setView('home')}/>;
+  }
+  return <Homepage onConstructorClick={() => setView('constructor')}/>;
+}
+
+// Альтернативная тёмная версия главной
+function HomeDark({ onConstructorClick }) {
+  return (
+    <div className="pl-alt">
+      <Header onConstructorClick={onConstructorClick}/>
+      <Nav onConstructorClick={onConstructorClick}/>
+      <div className="pl-container">
+        <div className="pl-hero" style={{ marginTop: 16 }}>
+          <div className="pl-hero-main" style={{
+            background: 'linear-gradient(120deg, #0d0d0d 0%, #1a1a1a 100%)',
+            color: 'white',
+            border: '2px solid #ff2d2d',
+          }}>
+            <div className="pl-hero-content">
+              <span className="pl-hero-badge" style={{ background: '#ffd400', color: '#0d0d0d' }}>STREETWEAR DROP · ОГРАНИЧЕННАЯ СЕРИЯ</span>
+              <h1 style={{ color: 'white', fontSize: 50 }}>NO LIMITS.<br/><em style={{ background: '#ff2d2d', color: 'white' }}>ВСЁ В ТВОЁМ ПРИНТЕ.</em></h1>
+              <p style={{ color: '#bbb' }}>Конструктор для тех, кто хочет надеть свой мем, плейлист или вайб. От идеи до посылки — 24 часа.</p>
+              <button className="pl-hero-cta" style={{ background: '#ff2d2d', color: 'white' }} onClick={onConstructorClick}>
+                СОЗДАТЬ СЕЙЧАС →
+              </button>
+            </div>
+            <div className="pl-hero-shirt">
+              <ShirtSVG color="#0d0d0d">
+                <g transform="translate(140, 200)">
+                  <rect x="0" y="20" width="120" height="50" fill="#ff2d2d" transform="rotate(-3 60 45)"/>
+                  <text x="60" y="58" textAnchor="middle" fontFamily="Impact" fontSize="38" fill="white" transform="rotate(-3 60 45)">DROP</text>
+                </g>
+              </ShirtSVG>
+            </div>
+          </div>
+          <div className="pl-hero-side">
+            <div className="pl-hero-card" style={{ background: '#ff2d2d', color: 'white' }}>
+              <div>
+                <h3>СВОЙ МЕМ<br/>НА ХУДИ</h3>
+                <p>320 г/м² · от 2390 ₽</p>
+              </div>
+              <div className="pl-hero-card-foot">→</div>
+            </div>
+            <div className="pl-hero-card" style={{ background: '#ffd400', color: 'black' }}>
+              <div>
+                <h3>—40%<br/>НА ВСЁ</h3>
+                <p>Только до воскресенья</p>
+              </div>
+              <div className="pl-hero-card-foot" style={{ color: 'black' }}>→</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="pl-section">
+          <div className="pl-section-head">
+            <h2>ТРЕНДЫ <em>ЭТОЙ НЕДЕЛИ</em></h2>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 8 }}>
+            {PRINTS.slice(0, 8).map((p, i) => (
+              <div key={i} style={{ aspectRatio: 1, background: '#1a1a1a', borderRadius: 6, display: 'grid', placeItems: 'center', cursor: 'pointer', border: '2px solid #2a2a2a', position: 'relative' }}>
+                <div style={{ width: '70%', height: '70%' }}>{p.svg}</div>
+                <span style={{ position: 'absolute', top: 6, right: 6, fontSize: 10, color: '#ff2d2d', fontWeight: 800 }}>#{i+1}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="pl-section">
+          <div className="pl-section-head">
+            <h2>ТОП <em>ПРОДАЖ</em></h2>
+          </div>
+          <div className="pl-grid">
+            {[
+              { name: 'Худи "DROP" чёрное', price: 2890, priceOld: 3990, rating: 4.9, sales: 1200, fav: false,
+                shirtColor: '#0d0d0d', print: PRINTS[2].svg, tags: [{k:'sale', l:'-28%'}],
+                colors: ['#0d0d0d','#9ca3a3','#16213e'] },
+              { name: 'Футболка "Космонавт-вайб"', price: 890, priceOld: 1490, rating: 4.9, sales: 2400, fav: true,
+                shirtColor: '#1a1a1a', print: PRINTS[0].svg, tags: [{k:'sale', l:'-40%'}],
+                colors: ['#1a1a1a','#1f3a8a','#e9789e'] },
+              { name: 'Свитшот "Cat"', price: 1990, rating: 4.7, sales: 540, fav: false,
+                shirtColor: '#1a1a1a', print: PRINTS[4].svg, tags: [{k:'hot', l:'хит'}],
+                colors: ['#1a1a1a','#e9789e'] },
+              { name: 'Лонгслив "Pizza"', price: 1290, rating: 4.8, sales: 320, fav: false,
+                shirtColor: '#1a1a1a', print: PRINTS[8].svg, tags: [{k:'new', l:'new'}],
+                colors: ['#1a1a1a','#fff'] },
+              { name: 'Футболка "NFT Ape"', price: 990, rating: 4.6, sales: 180, fav: false,
+                shirtColor: '#0d0d0d', print: PRINTS[11].svg, tags: [{k:'new', l:'new'}],
+                colors: ['#0d0d0d','#9ca3a3'] },
+            ].map((p, i) => <ProductCard key={i} p={p}/>)}
+          </div>
+        </div>
+        <div style={{ height: 60 }}/>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <DesignCanvas>
+      <DCSection id="main" title="PrintLab" subtitle="Конструктор принтов в стиле vsemayki.ru. Кликни «Открыть конструктор» чтобы попасть в редактор.">
+        <DCArtboard id="home" label="01 · Главная (классика)" width={1280} height={2200}>
+          <div className="pl-art">
+            <HomeArtboard/>
+          </div>
+        </DCArtboard>
+
+        <DCArtboard id="constructor" label="02 · Конструктор (рабочий)" width={1280} height={820}>
+          <div className="pl-art-constructor">
+            <Constructor onBack={() => {}}/>
+          </div>
+        </DCArtboard>
+
+        <DCArtboard id="alt" label="03 · Главная (streetwear)" width={1280} height={1100}>
+          <div className="pl-art-alt">
+            <HomeDark onConstructorClick={() => {}}/>
+          </div>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="mobile" title="Мобильная версия" subtitle="Та же логика на телефоне. Жми «Создать» в нижнем таб-баре или на hero-кнопке — попадёшь в конструктор внутри устройства.">
+        <DCArtboard id="m-home" label="04 · Mobile · Главная" width={420} height={895}>
+          <IOSDevice width={402} height={874}>
+            <MobileApp initial="home"/>
+          </IOSDevice>
+        </DCArtboard>
+
+        <DCArtboard id="m-constructor" label="05 · Mobile · Конструктор" width={420} height={895}>
+          <IOSDevice width={402} height={874}>
+            <MobileApp initial="constructor"/>
+          </IOSDevice>
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
+</script>
+</body>
+</html>

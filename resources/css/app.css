@@ -1,14 +1,11 @@
 @import 'tailwindcss';
+@import './tokens.css';
+@import '../../design_handoff_printlab/source/styles.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
-
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
-}
 
 .printlab-footer {
     position: relative;
@@ -38,6 +35,21 @@
     background: #777bb4;
     box-shadow: 0 0 0 0 rgba(119, 123, 180, 0.35);
     animation: printlab-footer-pulse 2.2s ease-out infinite;
+}
+
+.pl-empty-card {
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed #d8d8d8;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #8a8a8a;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    padding: 24px;
 }
 
 @keyframes printlab-footer-scan {
@@ -79,5 +91,129 @@
     .printlab-footer__content,
     .printlab-footer__pulse {
         animation: none;
+    }
+}
+
+@media (max-width: 1024px) {
+    .pl-header-row {
+        gap: 14px;
+    }
+
+    .pl-logo {
+        font-size: 22px;
+    }
+
+    .pl-logo-mark {
+        width: 32px;
+        height: 32px;
+    }
+
+    .pl-header-action span:last-child:not(.pl-badge) {
+        display: none;
+    }
+
+    .pl-nav-row {
+        overflow-x: auto;
+    }
+
+    .pl-nav ul {
+        min-width: max-content;
+    }
+
+    .pl-hero {
+        grid-template-columns: 1fr;
+    }
+
+    .pl-hero-side {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pl-hero-content {
+        max-width: 64%;
+    }
+
+    .pl-hero h1 {
+        font-size: 38px;
+    }
+
+    .pl-hero-shirt {
+        right: 16px;
+        width: 210px;
+    }
+
+    .pl-cats {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .pl-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .pl-prints {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 720px) {
+    .pl-topbar {
+        display: none;
+    }
+
+    .pl-header-row {
+        flex-wrap: wrap;
+    }
+
+    .pl-search {
+        order: 3;
+        flex-basis: 100%;
+    }
+
+    .pl-nav-cat {
+        min-width: 132px;
+    }
+
+    .pl-hero-main {
+        min-height: 430px;
+        padding: 26px 24px;
+        align-items: flex-start;
+    }
+
+    .pl-hero-content {
+        max-width: 100%;
+    }
+
+    .pl-hero h1 {
+        font-size: 34px;
+        max-width: 360px;
+    }
+
+    .pl-hero p {
+        max-width: 320px;
+    }
+
+    .pl-hero-shirt {
+        top: auto;
+        right: 12px;
+        bottom: 28px;
+        width: 185px;
+        height: 210px;
+        transform: rotate(8deg);
+        opacity: 0.9;
+    }
+
+    .pl-hero-cta {
+        position: relative;
+        z-index: 2;
+    }
+
+    .pl-hero-side,
+    .pl-footer-cols {
+        grid-template-columns: 1fr;
+    }
+
+    .pl-cats,
+    .pl-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 }

@@ -22,6 +22,8 @@ Route::get('/catalog/t-shirts', [CatalogController::class, 'index'])->name('cata
 Route::get('/catalog/mugs', [CatalogController::class, 'index'])->name('catalog.mugs');
 Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
 Route::get('/prints/{design}', [PrintController::class, 'show'])->name('prints.show');
+Route::get('/constructor', [ConstructorController::class, 'localFallback'])->name('constructor.fallback');
+Route::get('/constructor/v2/{product:slug}', [ConstructorController::class, 'v2'])->name('constructor.v2');
 Route::get('/constructor/{product:slug}', [ConstructorController::class, 'show'])->name('constructor.show');
 Route::post('/order-requests', [OrderRequestController::class, 'store'])->name('order-requests.store');
 Route::get('/order-request/success', [OrderRequestController::class, 'success'])->name('order-requests.success');
