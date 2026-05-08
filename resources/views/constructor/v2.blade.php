@@ -33,6 +33,7 @@
         ],
         'routes' => [
             'constructor' => route('constructor.show', $product),
+            'generatePrint' => url('/api/generated-prints'),
             'storeOrderRequest' => route('order-requests.store'),
             'success' => route('order-requests.success'),
         ],
@@ -307,6 +308,84 @@ input[type=color] { width: 36px; height: 30px; border-radius: 6px; border: 1px s
 .add-menu-btn:hover { border-color: var(--accent); color: var(--accent); }
 .add-menu-btn .ami { display: block; font-size: 22px; margin-bottom: 4px; }
 
+/* AI PRINT */
+.ai-print-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.ai-print-head { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.ai-print-title { font-size: 12px; font-weight: 700; color: var(--text); }
+.ai-prompt-counter { font-size: 10px; color: var(--muted); white-space: nowrap; }
+.ai-prompt-input {
+  width: 100%;
+  min-height: 76px;
+  resize: vertical;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+  outline: none;
+}
+.ai-prompt-input:focus { border-color: var(--accent); }
+.ai-reference-label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 34px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 11px;
+  text-align: center;
+}
+.ai-reference-label:hover { border-color: var(--accent); color: var(--accent); }
+.ai-reference-name { min-height: 14px; color: var(--muted); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-reference-preview {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.ai-reference-preview.visible { display: flex; }
+.ai-reference-preview img {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.ai-reference-preview span {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ai-print-message { min-height: 16px; color: var(--muted); font-size: 11px; line-height: 1.35; }
+.ai-print-message.error { color: var(--accent2); }
+.ai-print-message.success { color: #15803d; }
+.ai-generate-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
 /* TOAST */
 .toast {
   position: fixed; bottom: 20px; left: 50%;
@@ -353,6 +432,7 @@ input[type=color] { width: 36px; height: 30px; border-radius: 6px; border: 1px s
 /* ─── MOBILE ────────────────────────────────────────────── */
 .mobile-bottom-bar { display: none; }
 .mobile-panel      { display: none; }
+.mobile-ai-print-panel { display: none; }
 
 @media (max-width: 768px) {
   body { height: 100dvh; }
@@ -450,6 +530,14 @@ input[type=color] { width: 36px; height: 30px; border-radius: 6px; border: 1px s
   }
   .mobile-tab-btn .tab-icon { font-size: 18px; line-height: 1.2; }
   .mobile-tab-btn.active { color: var(--accent); background: rgba(0,122,255,0.08); }
+  .mobile-tab-btn.mobile-ai-print-featured {
+    color: #e30613;
+    font-weight: 900;
+  }
+  .mobile-tab-btn.mobile-ai-print-featured.active {
+    background: #fff1f2;
+    color: #e30613;
+  }
   .mobile-add-fab {
     width: 46px; height: 46px; flex: none;
     background: var(--accent); color: white;
@@ -490,6 +578,9 @@ input[type=color] { width: 36px; height: 30px; border-radius: 6px; border: 1px s
   .mobile-panel.mobile-open {
     display: block;
     animation: slideUpPanel 0.22s cubic-bezier(0.22,1,0.36,1);
+  }
+  .mobile-ai-print-panel.mobile-open {
+    display: block;
   }
   .panel-handle {
     width: 36px; height: 4px;
@@ -894,7 +985,8 @@ body.constructor-v2 .order-title {
   }
 
   body.constructor-v2 .panel-right,
-  body.constructor-v2 .mobile-panel {
+  body.constructor-v2 .mobile-panel,
+  body.constructor-v2 .mobile-ai-print-panel {
     bottom: 64px;
   }
 }
@@ -984,6 +1076,32 @@ body.constructor-v2 .order-title {
         <button class="add-menu-btn" type="button" onclick="addShape('star')"><span class="ami">★</span>Star</button>
         <button class="add-menu-btn" type="button" onclick="addShape('circle')"><span class="ami">○</span>Circle</button>
         <button class="add-menu-btn" type="button" onclick="addText()"><span class="ami">Aa</span>Text</button>
+      </div>
+    </div>
+    <div class="v2-left-section" id="desktopAiPrintMount">
+      <div class="ai-print-panel" id="aiPrintPanel" data-ai-generate-route="/api/generated-prints">
+        <div class="ai-print-head">
+          <div class="ai-print-title">AI-принт</div>
+          <div class="ai-prompt-counter" id="aiPromptCounter">0/250</div>
+        </div>
+        <textarea
+          class="ai-prompt-input"
+          id="aiPromptInput"
+          maxlength="250"
+          placeholder="Например: минимальный логотип кофейни в стиле streetwear"
+          oninput="updateAiPromptCounter()"
+        ></textarea>
+        <label class="ai-reference-label" for="aiReferenceInput">
+          Логотип / референс
+          <input id="aiReferenceInput" type="file" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="updateAiReferencePreview()">
+        </label>
+        <div class="ai-reference-name" id="aiReferenceName"></div>
+        <div class="ai-reference-preview" id="aiReferencePreview">
+          <img id="aiReferencePreviewImg" alt="Preview">
+          <span id="aiReferencePreviewText">Референс загружен</span>
+        </div>
+        <button class="btn btn-primary ai-generate-btn" id="aiGenerateBtn" type="button" onclick="handleAiGenerate()" disabled>Сгенерировать</button>
+        <div class="ai-print-message" id="aiPrintMessage"></div>
       </div>
     </div>
     <div class="shirt-thumb active" id="thumb0" onclick="selectShirtView(0)">
@@ -1116,12 +1234,22 @@ body.constructor-v2 .order-title {
     <span class="tab-icon">⚙</span>
     <span>{{ __('site.constructor_settings') }}</span>
   </button>
+  <button class="mobile-tab-btn mobile-ai-print-featured" id="mTabAi" onclick="mobileSwitchTab('ai')">
+    <span class="tab-icon">AI</span>
+    <span>Принт</span>
+  </button>
   <button class="mobile-add-fab" onclick="toggleAddMenu()" aria-label="{{ __('site.constructor_add_element') }}">+</button>
   <button class="mobile-tab-btn" id="mTabVariants" onclick="mobileSwitchTab('variants')">
     <span class="tab-icon">👕</span>
     <span>{{ __('site.constructor_variant') }}</span>
   </button>
   <button class="mobile-order-btn" onclick="openOrderDialog()">{{ __('site.constructor_order') }}</button>
+</div>
+
+<!-- ═══ MOBILE AI PRINT PANEL ═══ -->
+<div class="mobile-panel mobile-ai-print-panel" id="mobileAiPrintPanel">
+  <div class="panel-handle"></div>
+  <div id="mobileAiPrintMount"></div>
 </div>
 
 <!-- ═══ MOBILE VARIANTS PANEL ═══ -->
@@ -1668,6 +1796,174 @@ function addImage(evt) {
   closeAddMenu();
 }
 
+function updateAiPromptCounter() {
+  const input = document.getElementById('aiPromptInput');
+  const counter = document.getElementById('aiPromptCounter');
+  const btn = document.getElementById('aiGenerateBtn');
+  const len = input ? input.value.trim().length : 0;
+  if (counter) counter.textContent = `${len}/250`;
+  if (btn) btn.disabled = len === 0;
+}
+
+function updateAiReferenceName() {
+  const input = document.getElementById('aiReferenceInput');
+  const target = document.getElementById('aiReferenceName');
+  if (!input || !target) return;
+  target.textContent = input.files && input.files[0] ? input.files[0].name : '';
+}
+
+function updateAiReferencePreview() {
+  updateAiReferenceName();
+  const input = document.getElementById('aiReferenceInput');
+  const preview = document.getElementById('aiReferencePreview');
+  const image = document.getElementById('aiReferencePreviewImg');
+  const text = document.getElementById('aiReferencePreviewText');
+  const file = input?.files?.[0];
+
+  if (!preview || !image || !text) return;
+
+  if (!file) {
+    preview.classList.remove('visible');
+    image.removeAttribute('src');
+    text.textContent = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    image.src = e.target.result;
+    text.textContent = file.name;
+    preview.classList.add('visible');
+  };
+  reader.readAsDataURL(file);
+}
+
+function showAiPrintMessage(message, type = 'info') {
+  const box = document.getElementById('aiPrintMessage');
+  if (!box) return;
+  box.textContent = message || '';
+  box.classList.remove('error', 'success');
+  if (type === 'error' || type === 'success') box.classList.add(type);
+}
+
+function readAiReferenceImage() {
+  const input = document.getElementById('aiReferenceInput');
+  const file = input?.files?.[0];
+  if (!file) return Promise.resolve(null);
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = () => reject(new Error('reference_read_failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function imageUrlToDataUrl(imageUrl) {
+  const response = await fetch(normalizeGeneratedImageUrl(imageUrl), { headers: { 'Accept': 'image/*' } });
+  if (!response.ok) throw new Error('image_fetch_failed');
+  const blob = await response.blob();
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = () => reject(new Error('image_read_failed'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function normalizeGeneratedImageUrl(imageUrl) {
+  const url = new URL(imageUrl, window.location.href);
+  return url.origin === window.location.origin ? url.href : `${url.pathname}${url.search}${url.hash}`;
+}
+
+function addGeneratedImageLayer({ dataUrl, imageUrl, fileName, sourceId }) {
+  const img = new Image();
+  img.onload = () => {
+    const pz = getPZ();
+    const maxW = pz.w * 0.7, maxH = pz.h * 0.7;
+    const ratio = Math.min(maxW / img.width, maxH / img.height, 1);
+    saveHistory();
+    const layer = {
+      id: nextId++, type: 'image', img,
+      x: pz.x + pz.w / 2, y: pz.y + pz.h / 2,
+      w: img.width * ratio, h: img.height * ratio,
+      rotation: 0, scale: 1, opacity: 1, blend: 'source-over',
+      name: 'AI-принт',
+      src: dataUrl,
+      originalFileName: fileName || 'ai-print.png',
+      generatedPrintId: sourceId || null,
+      generatedImageUrl: imageUrl || null
+    };
+    layers.push(layer);
+    selectedId = layer.id;
+    refreshUI();
+    showAiPrintMessage('AI-принт добавлен', 'success');
+    showToast('AI-принт добавлен');
+  };
+  img.onerror = () => showAiPrintMessage('Не удалось загрузить сгенерированный принт', 'error');
+  img.src = dataUrl;
+}
+
+async function handleAiGenerate() {
+  const input = document.getElementById('aiPromptInput');
+  const btn = document.getElementById('aiGenerateBtn');
+  const prompt = input ? input.value.trim() : '';
+  if (!prompt) {
+    showAiPrintMessage('Введите описание принта', 'error');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Генерация...';
+  showAiPrintMessage('Генерируем принт...');
+
+  try {
+    const referenceImage = await readAiReferenceImage();
+    const response = await fetch(constructorConfig.routes.generatePrint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+      },
+      body: JSON.stringify({
+        prompt,
+        reference_image: referenceImage,
+      }),
+    });
+
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      if (response.status === 422) {
+        showAiPrintMessage(payload.message || 'Проверьте описание и референс', 'error');
+      } else if (response.status === 429) {
+        showAiPrintMessage('Сегодня доступно только 2 AI-генерации', 'error');
+      } else if (response.status === 503) {
+        showAiPrintMessage('AI-генерация пока не настроена', 'error');
+      } else {
+        showAiPrintMessage('Не удалось сгенерировать принт. Попробуйте ещё раз', 'error');
+      }
+      return;
+    }
+
+    const data = payload.data || {};
+    const dataUrl = await imageUrlToDataUrl(data.image_url);
+    addGeneratedImageLayer({
+      dataUrl,
+      imageUrl: data.image_url,
+      fileName: data.asset?.file_name || 'ai-print.png',
+      sourceId: data.id,
+    });
+  } catch (error) {
+    showAiPrintMessage('Не удалось сгенерировать принт. Попробуйте ещё раз', 'error');
+  } finally {
+    btn.textContent = 'Сгенерировать';
+    updateAiPromptCounter();
+  }
+}
+
 function addText() {
   const pz = getPZ();
   saveHistory();
@@ -2047,6 +2343,8 @@ function serializeLayers() {
         ...base,
         src: layer.src || '',
         originalFileName: layer.originalFileName || layer.name,
+        generatedPrintId: layer.generatedPrintId || null,
+        generatedImageUrl: layer.generatedImageUrl || null,
         width: layer.w,
         height: layer.h,
       };
@@ -2178,10 +2476,24 @@ function showToast(msg) {
 // ============================================================
 let mobileActiveTab = null;
 
+function mobileSyncAiPanel(open) {
+  const panel = document.getElementById('aiPrintPanel');
+  const desktopMount = document.getElementById('desktopAiPrintMount');
+  const mobileMount = document.getElementById('mobileAiPrintMount');
+  if (!panel || !desktopMount || !mobileMount) return;
+
+  if (open && window.innerWidth <= 768) {
+    mobileMount.appendChild(panel);
+  } else {
+    desktopMount.appendChild(panel);
+  }
+}
+
 function mobileSwitchTab(tab) {
   const panelRight    = document.querySelector('.panel-right');
   const variantsPanel = document.getElementById('mobileVariantsPanel');
-  const tabMap = { layers: 'mTabLayers', props: 'mTabProps', variants: 'mTabVariants' };
+  const aiPanel = document.getElementById('mobileAiPrintPanel');
+  const tabMap = { layers: 'mTabLayers', props: 'mTabProps', ai: 'mTabAi', variants: 'mTabVariants' };
 
   // Deactivate all tabs
   Object.values(tabMap).forEach(id => document.getElementById(id)?.classList.remove('active'));
@@ -2191,12 +2503,15 @@ function mobileSwitchTab(tab) {
     mobileActiveTab = null;
     panelRight.classList.remove('mobile-open');
     variantsPanel.classList.remove('mobile-open');
+    aiPanel.classList.remove('mobile-open');
+    mobileSyncAiPanel(false);
     return;
   }
 
   mobileActiveTab = tab;
   panelRight.classList.remove('mobile-open');
   variantsPanel.classList.remove('mobile-open');
+  aiPanel.classList.remove('mobile-open');
 
   if (tab === 'layers' || tab === 'props') {
     document.getElementById(tabMap[tab])?.classList.add('active');
@@ -2206,6 +2521,10 @@ function mobileSwitchTab(tab) {
         document.getElementById('layersList')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }, 60);
     }
+  } else if (tab === 'ai') {
+    document.getElementById('mTabAi')?.classList.add('active');
+    mobileSyncAiPanel(true);
+    aiPanel.classList.add('mobile-open');
   } else if (tab === 'variants') {
     document.getElementById('mTabVariants')?.classList.add('active');
     variantsPanel.classList.add('mobile-open');
@@ -2217,7 +2536,9 @@ canvas.addEventListener('touchend', () => {
   if (window.innerWidth > 768) return;
   document.querySelector('.panel-right')?.classList.remove('mobile-open');
   document.getElementById('mobileVariantsPanel')?.classList.remove('mobile-open');
+  document.getElementById('mobileAiPrintPanel')?.classList.remove('mobile-open');
   document.querySelectorAll('.mobile-tab-btn').forEach(b => b.classList.remove('active'));
+  mobileSyncAiPanel(false);
   mobileActiveTab = null;
 }, { passive: true });
 

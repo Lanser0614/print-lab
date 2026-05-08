@@ -28,7 +28,7 @@ final readonly class CreateGeneratedPrintUseCase
             Carbon::today(),
         );
 
-        if ($this->dailyCompletedCount($fingerprint) >= self::DAILY_GUEST_LIMIT) {
+        if ($this->shouldApplyGuestDailyLimit() && $this->dailyCompletedCount($fingerprint) >= self::DAILY_GUEST_LIMIT) {
             abort(response()->json([
                 'message' => 'Daily AI print generation limit reached.',
             ], 429));
@@ -85,6 +85,11 @@ final readonly class CreateGeneratedPrintUseCase
             ->where('status', 'completed')
             ->whereDate('created_at', Carbon::today())
             ->count();
+    }
+
+    private function shouldApplyGuestDailyLimit(): bool
+    {
+        return ! app()->environment(['local', 'testing']);
     }
 
     private function storeReferenceImage(string $dataUrl): string

@@ -63,10 +63,11 @@ class GeneratedPrintApiTest extends TestCase
         Storage::disk('public')->assertExists($generatedPrint->generated_image_path);
     }
 
-    public function test_guest_user_can_generate_only_two_successful_images_per_day(): void
+    public function test_guest_user_can_generate_only_two_successful_images_per_day_in_production(): void
     {
         Storage::fake('public');
         config(['services.openai.image_driver' => 'fake']);
+        app()->detectEnvironment(fn () => 'production');
         Carbon::setTestNow('2026-05-08 10:00:00');
 
         GeneratedPrint::factory()->count(2)->create([
@@ -81,6 +82,26 @@ class GeneratedPrintApiTest extends TestCase
             ])
             ->assertTooManyRequests()
             ->assertJsonPath('message', 'Daily AI print generation limit reached.');
+    }
+
+    public function test_local_environment_does_not_apply_guest_daily_limit(): void
+    {
+        Storage::fake('public');
+        config(['services.openai.image_driver' => 'fake']);
+        app()->detectEnvironment(fn () => 'local');
+        Carbon::setTestNow('2026-05-08 10:00:00');
+
+        GeneratedPrint::factory()->count(2)->create([
+            'status' => 'completed',
+            'guest_fingerprint' => GeneratedPrint::guestFingerprint('127.0.0.1', 'PrintLabTestAgent', Carbon::today()),
+            'created_at' => Carbon::now(),
+        ]);
+
+        $this->withHeaders(['User-Agent' => 'PrintLabTestAgent'])
+            ->postJson('/api/generated-prints', [
+                'prompt' => 'Third local daily print',
+            ])
+            ->assertCreated();
     }
 
     public function test_failed_and_yesterday_generations_do_not_count_toward_guest_daily_limit(): void
