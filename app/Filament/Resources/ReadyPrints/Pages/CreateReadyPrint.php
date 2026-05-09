@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\ReadyPrints\Pages;
 
-use App\Filament\Resources\ReadyPrints\ReadyPrintResource;
 use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\ReadyPrints\ReadyPrintResource;
 
 class CreateReadyPrint extends CreateRecord
 {

@@ -2,10 +2,10 @@
 
 namespace Tests\Unit\Auth;
 
-use App\Models\TelegramLoginToken;
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Models\User;
+use App\Models\TelegramLoginToken;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class TelegramLoginTokenTest extends TestCase
 {

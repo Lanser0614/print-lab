@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\ReadyPrints\Pages;
 
-use App\Filament\Resources\ReadyPrints\ReadyPrintResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\ReadyPrints\ReadyPrintResource;
 
 class ListReadyPrints extends ListRecords
 {

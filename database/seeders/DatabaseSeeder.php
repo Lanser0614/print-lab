@@ -2,13 +2,13 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
-use App\Models\Product;
-use App\Models\ProductPrintArea;
-use App\Models\ProductVariant;
-use App\Models\ReadyPrint;
 use App\Models\User;
+use App\Models\Product;
+use App\Models\Category;
+use App\Models\ReadyPrint;
+use App\Models\ProductVariant;
 use Illuminate\Database\Seeder;
+use App\Models\ProductPrintArea;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder

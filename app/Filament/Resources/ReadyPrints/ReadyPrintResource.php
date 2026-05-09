@@ -2,31 +2,31 @@
 
 namespace App\Filament\Resources\ReadyPrints;
 
-use App\Filament\Resources\ReadyPrints\Pages\CreateReadyPrint;
-use App\Filament\Resources\ReadyPrints\Pages\EditReadyPrint;
-use App\Filament\Resources\ReadyPrints\Pages\ListReadyPrints;
+use BackedEnum;
 use App\Models\Category;
 use App\Models\ReadyPrint;
-use BackedEnum;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Resources\Resource;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Utilities\Set;
-use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\ImageColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
+use Filament\Schemas\Schema;
+use Filament\Actions\EditAction;
+use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
+use Filament\Actions\BulkActionGroup;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Toggle;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Forms\Components\FileUpload;
+use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Schemas\Components\Utilities\Set;
+use App\Filament\Resources\ReadyPrints\Pages\EditReadyPrint;
+use App\Filament\Resources\ReadyPrints\Pages\ListReadyPrints;
+use App\Filament\Resources\ReadyPrints\Pages\CreateReadyPrint;
 
 class ReadyPrintResource extends Resource
 {

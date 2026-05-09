@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\DTO\OrderRequests\CreateOrderRequestData;
-use App\Http\Requests\StoreOrderRequestRequest;
-use App\UseCases\OrderRequests\CreateOrderRequestUseCase;
+use Illuminate\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
+use App\Http\Requests\StoreOrderRequestRequest;
+use App\DTO\OrderRequests\CreateOrderRequestData;
+use App\UseCases\OrderRequests\CreateOrderRequestUseCase;
 
 class OrderRequestController extends Controller
 {

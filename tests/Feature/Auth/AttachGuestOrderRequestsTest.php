@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Models\OrderRequest;
-use App\Models\User;
-use App\UseCases\Auth\AttachGuestOrderRequestsUseCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Models\User;
+use App\Models\OrderRequest;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\UseCases\Auth\AttachGuestOrderRequestsUseCase;
 
 class AttachGuestOrderRequestsTest extends TestCase
 {

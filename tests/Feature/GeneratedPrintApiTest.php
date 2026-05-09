@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
+use Tests\TestCase;
 use App\Models\GeneratedPrint;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
-use Tests\TestCase;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class GeneratedPrintApiTest extends TestCase
 {

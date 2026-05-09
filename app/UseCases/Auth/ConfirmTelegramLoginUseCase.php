@@ -2,8 +2,8 @@
 
 namespace App\UseCases\Auth;
 
-use App\Models\TelegramLoginToken;
 use App\Models\User;
+use App\Models\TelegramLoginToken;
 use App\Services\Telegram\Dto\TelegramUser;
 
 final readonly class ConfirmTelegramLoginUseCase

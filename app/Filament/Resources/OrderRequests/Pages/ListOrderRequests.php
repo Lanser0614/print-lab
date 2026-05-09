@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\OrderRequests\Pages;
 
-use App\Filament\Resources\OrderRequests\OrderRequestResource;
-use App\UseCases\OrderRequests\TakeNextOrderRequestUseCase;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\ListRecords;
+use App\UseCases\OrderRequests\TakeNextOrderRequestUseCase;
+use App\Filament\Resources\OrderRequests\OrderRequestResource;
 
 class ListOrderRequests extends ListRecords
 {

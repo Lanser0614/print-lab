@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\OrderRequest;
-use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Contracts\View\View;
 
 class AccountController extends Controller
 {

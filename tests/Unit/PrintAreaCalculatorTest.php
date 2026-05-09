@@ -2,8 +2,8 @@
 
 namespace Tests\Unit;
 
-use App\Support\PrintAreaCalculator;
 use PHPUnit\Framework\TestCase;
+use App\Support\PrintAreaCalculator;
 
 class PrintAreaCalculatorTest extends TestCase
 {

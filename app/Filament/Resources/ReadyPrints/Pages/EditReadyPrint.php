@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\ReadyPrints\Pages;
 
-use App\Filament\Resources\ReadyPrints\ReadyPrintResource;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
+use App\Filament\Resources\ReadyPrints\ReadyPrintResource;
 
 class EditReadyPrint extends EditRecord
 {

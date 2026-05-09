@@ -2,10 +2,10 @@
 
 namespace App\Providers;
 
-use App\Services\Ai\FakeImageGenerator;
 use App\Services\Ai\ImageGenerator;
-use App\Services\Ai\OpenAiImageGenerator;
+use App\Services\Ai\FakeImageGenerator;
 use Illuminate\Support\ServiceProvider;
+use App\Services\Ai\OpenAiImageGenerator;
 
 class AppServiceProvider extends ServiceProvider
 {

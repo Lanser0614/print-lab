@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\OrderRequestStatus;
-use App\Models\Category;
 use App\Models\Design;
 use App\Models\Product;
+use App\Models\Category;
+use App\Enums\OrderRequestStatus;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 

@@ -2,14 +2,14 @@
 
 namespace Tests\Unit\Auth;
 
-use App\Services\Telegram\FakeTelegramAuthGateway;
 use PHPUnit\Framework\TestCase;
+use App\Services\Telegram\FakeTelegramAuthGateway;
 
 class FakeTelegramAuthGatewayTest extends TestCase
 {
     public function test_simulates_start_command(): void
     {
-        $gateway = new FakeTelegramAuthGateway();
+        $gateway = new FakeTelegramAuthGateway;
 
         $update = $gateway->simulateStartCommand(
             token: 'token-value',

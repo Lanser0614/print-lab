@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use App\Enums\OrderRequestStatus;
-use Database\Factories\OrderRequestFactory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Database\Factories\OrderRequestFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class OrderRequest extends Model
 {

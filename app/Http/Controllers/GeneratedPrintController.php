@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\AiImageGenerationFailed;
-use App\Exceptions\AiImageGenerationNotConfigured;
-use App\Http\Requests\StoreGeneratedPrintRequest;
-use App\UseCases\GeneratedPrints\CreateGeneratedPrintUseCase;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
+use App\Exceptions\AiImageGenerationFailed;
+use App\Http\Requests\StoreGeneratedPrintRequest;
+use App\Exceptions\AiImageGenerationNotConfigured;
+use App\UseCases\GeneratedPrints\CreateGeneratedPrintUseCase;
 
 class GeneratedPrintController extends Controller
 {

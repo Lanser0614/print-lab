@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\OrderRequests\Pages;
 
-use App\Filament\Resources\OrderRequests\OrderRequestResource;
 use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\OrderRequests\OrderRequestResource;
 
 class CreateOrderRequest extends CreateRecord
 {

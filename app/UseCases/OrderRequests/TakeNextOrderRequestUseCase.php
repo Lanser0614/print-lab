@@ -2,9 +2,9 @@
 
 namespace App\UseCases\OrderRequests;
 
-use App\Enums\OrderRequestStatus;
-use App\Models\OrderRequest;
 use App\Models\User;
+use App\Models\OrderRequest;
+use App\Enums\OrderRequestStatus;
 use Illuminate\Support\Facades\DB;
 
 final readonly class TakeNextOrderRequestUseCase

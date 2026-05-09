@@ -2,8 +2,8 @@
 
 namespace App\UseCases\Auth;
 
-use App\Models\OrderRequest;
 use App\Models\User;
+use App\Models\OrderRequest;
 
 final readonly class AttachGuestOrderRequestsUseCase
 {

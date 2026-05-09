@@ -2,11 +2,12 @@
 
 namespace App\Http\Requests;
 
-use App\Models\ProductPrintArea;
-use App\Models\ProductVariant;
 use App\Support\DataUrlImage;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Models\ProductVariant;
+use App\Models\ProductPrintArea;
 use Illuminate\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
 
 class StoreOrderRequestRequest extends FormRequest
 {
@@ -60,7 +61,7 @@ class StoreOrderRequestRequest extends FormRequest
                 foreach (['preview_image', 'print_image'] as $field) {
                     try {
                         DataUrlImage::parse($this->string($field)->toString(), $field);
-                    } catch (\Illuminate\Validation\ValidationException) {
+                    } catch (ValidationException) {
                         $validator->errors()->add($field, 'The image must be a valid PNG, JPEG, or WebP data URL.');
                     }
                 }
@@ -68,7 +69,7 @@ class StoreOrderRequestRequest extends FormRequest
                 foreach ($this->input('assets', []) as $index => $asset) {
                     try {
                         DataUrlImage::parse((string) ($asset['data'] ?? ''), "assets.$index.data");
-                    } catch (\Illuminate\Validation\ValidationException) {
+                    } catch (ValidationException) {
                         $validator->errors()->add("assets.$index.data", 'The asset must be a valid PNG, JPEG, or WebP data URL.');
                     }
                 }

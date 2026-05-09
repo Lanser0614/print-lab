@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\Products\Pages;
 
-use App\Filament\Resources\Products\ProductResource;
 use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Products\ProductResource;
 
 class CreateProduct extends CreateRecord
 {

@@ -5,13 +5,13 @@ namespace App\Enums;
 enum ProductType: string
 {
     case TShirt = 't-shirt';
-    case Mug    = 'mug';
+    case Mug = 'mug';
     case Hoodie = 'hoodie';
-    case Other  = 'other';
+    case Other = 'other';
 
     public function label(): string
     {
-        $key = 'site.product_type_' . str_replace('-', '_', $this->value);
+        $key = 'site.product_type_'.str_replace('-', '_', $this->value);
         $translated = __($key);
 
         // Fallback to Russian if translation key missing
@@ -22,10 +22,9 @@ enum ProductType: string
     {
         return match ($this) {
             self::TShirt => 'Футболка',
-            self::Mug    => 'Кружка',
+            self::Mug => 'Кружка',
             self::Hoodie => 'Худи',
-            self::Other  => 'Другое',
+            self::Other => 'Другое',
         };
     }
-
 }

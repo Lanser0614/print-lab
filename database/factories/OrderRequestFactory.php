@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Enums\OrderRequestStatus;
 use App\Models\OrderRequest;
+use App\Enums\OrderRequestStatus;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

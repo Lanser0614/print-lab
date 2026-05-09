@@ -2,10 +2,10 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\ServiceProvider;
+use App\Services\Telegram\TelegramAuthGateway;
 use App\Services\Telegram\FakeTelegramAuthGateway;
 use App\Services\Telegram\HttpTelegramAuthGateway;
-use App\Services\Telegram\TelegramAuthGateway;
-use Illuminate\Support\ServiceProvider;
 
 class TelegramAuthServiceProvider extends ServiceProvider
 {

@@ -1,19 +1,19 @@
 <?php
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\PrintController;
 use App\Exceptions\AiImageGenerationFailed;
 use App\Http\Controllers\AccountController;
-use App\Http\Controllers\Admin\DesignDownloadController;
-use App\Http\Controllers\Auth\TelegramLoginController;
-use App\Http\Controllers\Auth\TelegramWebhookController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ConstructorController;
 use App\Http\Controllers\OrderRequestController;
-use App\Http\Controllers\PrintController;
-use App\Http\Controllers\ProductController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\Auth\TelegramLoginController;
+use App\Http\Controllers\Admin\DesignDownloadController;
+use App\Http\Controllers\Auth\TelegramWebhookController;
 
 Route::get('/', function (Request $request) {
     $locale = $request->session()->get('locale', $request->cookie('locale', 'ru'));
@@ -80,14 +80,11 @@ Route::middleware('auth')
         Route::get('/design-assets/{asset}', [DesignDownloadController::class, 'asset'])->name('design-assets.show');
     });
 
-
-
 Route::get('/test', function () {
-   return 'ok';
+    return 'ok';
 });
 
-
-//Route::get('/openapi', function (\App\Services\Ai\OpenAiImageGenerator $imageGenerator) {
+// Route::get('/openapi', function (\App\Services\Ai\OpenAiImageGenerator $imageGenerator) {
 //
 //
 //    try {
@@ -106,4 +103,4 @@ Route::get('/test', function () {
 //    Storage::disk('public')->put($generatedImagePath, $result->binary);
 //
 //    dd($generatedImagePath);
-//});
+// });

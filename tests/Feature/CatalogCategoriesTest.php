@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Models\Category;
+use Tests\TestCase;
 use App\Models\Product;
+use App\Models\Category;
 use App\Models\ReadyPrint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
 class CatalogCategoriesTest extends TestCase
 {
@@ -75,7 +75,7 @@ class CatalogCategoriesTest extends TestCase
         ]);
         $product->categories()->attach($filledCategory);
 
-        $response = $this->get('/ru/catalog?category=' . $emptyCategory->slug);
+        $response = $this->get('/ru/catalog?category='.$emptyCategory->slug);
 
         $response->assertOk();
         $response->assertSee('Товары пока не добавлены.', false);
@@ -103,7 +103,7 @@ class CatalogCategoriesTest extends TestCase
             ->assertOk()
             ->assertDontSee('Скрытые товары', false);
 
-        $this->get('/ru/catalog?category=' . $inactiveCategory->slug)
+        $this->get('/ru/catalog?category='.$inactiveCategory->slug)
             ->assertOk()
             ->assertSee('Товары пока не добавлены.', false)
             ->assertDontSee('Товар из скрытой категории', false);

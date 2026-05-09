@@ -2,17 +2,16 @@
 
 namespace App\Filament\Resources\OrderRequests\Schemas;
 
-use App\Enums\OrderRequestStatus;
 use App\Models\OrderRequest;
+use Filament\Schemas\Schema;
+use App\Enums\OrderRequestStatus;
+use Illuminate\Support\HtmlString;
 use Filament\Forms\Components\Select;
+use Filament\Schemas\Components\View;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Placeholder;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\View;
-use Filament\Schemas\Schema;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\HtmlString;
+use Filament\Forms\Components\Placeholder;
 
 class OrderRequestForm
 {

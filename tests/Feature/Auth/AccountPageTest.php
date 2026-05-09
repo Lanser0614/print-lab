@@ -2,10 +2,10 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Models\OrderRequest;
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Models\User;
+use App\Models\OrderRequest;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class AccountPageTest extends TestCase
 {

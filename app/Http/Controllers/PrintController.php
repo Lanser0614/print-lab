@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\OrderRequestStatus;
 use App\Models\Design;
+use App\Enums\OrderRequestStatus;
 use Illuminate\Contracts\View\View;
 
 class PrintController extends Controller
@@ -18,7 +18,7 @@ class PrintController extends Controller
 
         $design->load(['item.product.variants', 'item.orderRequest']);
 
-        $item         = $design->item;
+        $item = $design->item;
         $orderRequest = $item?->orderRequest;
 
         abort_if(

@@ -2,16 +2,16 @@
 
 namespace App\UseCases\OrderRequests;
 
-use App\DTO\OrderRequests\CreateOrderRequestData;
-use App\Enums\OrderRequestStatus;
 use App\Models\Design;
-use App\Models\OrderRequest;
 use App\Models\Product;
-use App\Models\ProductPrintArea;
-use App\Models\ProductVariant;
+use App\Models\OrderRequest;
 use App\Support\DataUrlImage;
+use App\Models\ProductVariant;
+use App\Models\ProductPrintArea;
+use App\Enums\OrderRequestStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\DTO\OrderRequests\CreateOrderRequestData;
 
 final readonly class CreateOrderRequestUseCase
 {
@@ -78,7 +78,7 @@ final readonly class CreateOrderRequestUseCase
     }
 
     /**
-     * @param  list<array<string, string>>  $assets
+     * @param list<array<string, string>> $assets
      */
     private function storeAssets(Design $design, array $assets): void
     {
@@ -99,7 +99,7 @@ final readonly class CreateOrderRequestUseCase
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $layers
+     * @param array<int, array<string, mixed>> $layers
      */
     private function storeTextLayers(Design $design, array $layers): void
     {

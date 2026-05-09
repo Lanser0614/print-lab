@@ -5,8 +5,8 @@ namespace App\DTO\OrderRequests;
 final readonly class CreateOrderRequestData
 {
     /**
-     * @param  array<string, mixed>  $canvasJson
-     * @param  list<array<string, string>>  $assets
+     * @param array<string, mixed>        $canvasJson
+     * @param list<array<string, string>> $assets
      */
     public function __construct(
         public string $customerName,
@@ -26,7 +26,7 @@ final readonly class CreateOrderRequestData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $validated
+     * @param array<string, mixed> $validated
      */
     public static function fromValidated(array $validated, ?int $userId = null): self
     {

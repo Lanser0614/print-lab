@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources\OrderRequests\Tables;
 
-use App\Enums\OrderRequestStatus;
+use Filament\Tables\Table;
 use App\Models\OrderRequest;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
-use Filament\Tables\Columns\SelectColumn;
+use App\Enums\OrderRequestStatus;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Table;
 
 class OrderRequestsTable
 {

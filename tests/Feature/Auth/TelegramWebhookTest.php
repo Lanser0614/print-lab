@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Models\TelegramLoginToken;
-use App\Services\Telegram\FakeTelegramAuthGateway;
-use App\Services\Telegram\TelegramAuthGateway;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Models\TelegramLoginToken;
+use App\Services\Telegram\TelegramAuthGateway;
+use App\Services\Telegram\FakeTelegramAuthGateway;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class TelegramWebhookTest extends TestCase
 {

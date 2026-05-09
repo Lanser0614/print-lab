@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Auth;
 
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Services\Telegram\TelegramWebhookHandler;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class TelegramWebhookController extends Controller
 {

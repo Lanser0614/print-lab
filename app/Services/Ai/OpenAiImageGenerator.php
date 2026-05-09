@@ -2,10 +2,10 @@
 
 namespace App\Services\Ai;
 
-use App\Exceptions\AiImageGenerationFailed;
-use App\Exceptions\AiImageGenerationNotConfigured;
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use App\Exceptions\AiImageGenerationFailed;
+use Illuminate\Http\Client\ConnectionException;
+use App\Exceptions\AiImageGenerationNotConfigured;
 
 class OpenAiImageGenerator implements ImageGenerator
 {
@@ -17,8 +17,8 @@ class OpenAiImageGenerator implements ImageGenerator
     }
 
     /**
-     * @param string $prompt
-     * @param string|null $referenceImageDataUrl
+     * @param  string                $prompt
+     * @param  string|null           $referenceImageDataUrl
      * @return ImageGenerationResult
      */
     public function generate(string $prompt, ?string $referenceImageDataUrl = null): ImageGenerationResult
@@ -26,7 +26,7 @@ class OpenAiImageGenerator implements ImageGenerator
         $this->assertConfigured();
 
         $model = (string) config('services.openai.image_model', 'gpt-image-1-mini');
-//        $model = 'gpt-image-1';
+        //        $model = 'gpt-image-1';
         $endpoint = $referenceImageDataUrl
             ? 'https://api.openai.com/v1/images/edits'
             : 'https://api.openai.com/v1/images/generations';

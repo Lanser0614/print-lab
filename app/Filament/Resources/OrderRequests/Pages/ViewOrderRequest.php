@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\OrderRequests\Pages;
 
-use App\Filament\Resources\OrderRequests\OrderRequestResource;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
+use App\Filament\Resources\OrderRequests\OrderRequestResource;
 
 class ViewOrderRequest extends ViewRecord
 {

@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Models\Product;
-use App\Models\ProductPrintArea;
-use App\Models\ProductVariant;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Models\ProductPrintArea;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class AiPrintStudioHandoffTest extends TestCase
 {
@@ -20,7 +20,7 @@ class AiPrintStudioHandoffTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSee("sessionStorage.setItem(AI_STUDIO_STORAGE_KEY", false)
+            ->assertSee('sessionStorage.setItem(AI_STUDIO_STORAGE_KEY', false)
             ->assertSee("const AI_STUDIO_STORAGE_KEY = 'printlab.pendingAiPrint'", false)
             ->assertSee('window.location.href = window.aiStudioConfig.routes.constructor', false)
             ->assertSee('selectedAiStudioPrint', false);
@@ -36,8 +36,8 @@ class AiPrintStudioHandoffTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('function loadPendingAiPrint', false)
-            ->assertSee("sessionStorage.getItem(AI_STUDIO_STORAGE_KEY)", false)
-            ->assertSee("sessionStorage.removeItem(AI_STUDIO_STORAGE_KEY)", false)
+            ->assertSee('sessionStorage.getItem(AI_STUDIO_STORAGE_KEY)', false)
+            ->assertSee('sessionStorage.removeItem(AI_STUDIO_STORAGE_KEY)', false)
             ->assertSee('addGeneratedImageLayer', false);
     }
 

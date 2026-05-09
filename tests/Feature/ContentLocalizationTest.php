@@ -2,14 +2,14 @@
 
 namespace Tests\Feature;
 
-use App\Models\Category;
+use Tests\TestCase;
 use App\Models\Product;
-use App\Models\ProductPrintArea;
-use App\Models\ProductVariant;
+use App\Models\Category;
 use App\Models\ReadyPrint;
+use App\Models\ProductVariant;
+use App\Models\ProductPrintArea;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
 class ContentLocalizationTest extends TestCase
 {
@@ -186,7 +186,7 @@ class ContentLocalizationTest extends TestCase
         ]);
         ProductPrintArea::factory()->create(['product_variant_id' => $variant->id]);
 
-        $this->get('/uz/products/' . $product->slug)
+        $this->get('/uz/products/'.$product->slug)
             ->assertOk()
             ->assertSee('Klassik futbolka', false)
             ->assertSee('background-color:#ff0000', false)

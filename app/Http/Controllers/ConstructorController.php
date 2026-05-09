@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use App\Models\ProductPrintArea;
-use App\Models\ProductVariant;
-use Database\Seeders\DatabaseSeeder;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use App\Models\ProductVariant;
+use App\Models\ProductPrintArea;
+use Illuminate\Contracts\View\View;
+use Database\Seeders\DatabaseSeeder;
 
 class ConstructorController extends Controller
 {

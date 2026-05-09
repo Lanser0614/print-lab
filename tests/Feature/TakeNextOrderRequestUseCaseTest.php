@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Enums\OrderRequestStatus;
-use App\Models\OrderRequest;
-use App\Models\User;
-use App\UseCases\OrderRequests\TakeNextOrderRequestUseCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Models\User;
+use App\Models\OrderRequest;
+use App\Enums\OrderRequestStatus;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\UseCases\OrderRequests\TakeNextOrderRequestUseCase;
 
 class TakeNextOrderRequestUseCaseTest extends TestCase
 {

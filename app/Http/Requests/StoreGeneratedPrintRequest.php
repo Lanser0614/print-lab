@@ -3,9 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Support\DataUrlImage;
+use Illuminate\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Validation\Validator;
 
 class StoreGeneratedPrintRequest extends FormRequest
 {

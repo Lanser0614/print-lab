@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\ProductPrintArea;
 use App\Models\ProductVariant;
+use App\Models\ProductPrintArea;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

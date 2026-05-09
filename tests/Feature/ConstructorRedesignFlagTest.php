@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Models\Product;
-use App\Models\ProductPrintArea;
-use App\Models\ProductVariant;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Models\ProductPrintArea;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class ConstructorRedesignFlagTest extends TestCase
 {
