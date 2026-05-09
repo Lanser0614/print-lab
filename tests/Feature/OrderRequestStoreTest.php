@@ -111,6 +111,38 @@ class OrderRequestStoreTest extends TestCase
         ])->assertUnprocessable();
     }
 
+    public function test_html_order_request_redirects_to_localized_home_catalog(): void
+    {
+        Storage::fake('public');
+
+        $product = Product::factory()->create();
+        $variant = ProductVariant::factory()->for($product)->create();
+        ProductPrintArea::factory()->for($variant)->create(['side' => 'front']);
+
+        $this->post('/ru/order-requests', [
+            'customer_name' => 'Doniyor',
+            'customer_phone' => '+998901234567',
+            'product_id' => $product->id,
+            'variant_id' => $variant->id,
+            'quantity' => 1,
+            'side' => 'front',
+            'canvas_json' => [
+                'layers' => [
+                    ['id' => 'text-1', 'type' => 'text', 'text' => 'PrintLab'],
+                ],
+                'print_area' => [
+                    'x' => 0.32,
+                    'y' => 0.27,
+                    'width' => 0.36,
+                    'height' => 0.42,
+                    'unit' => 'ratio',
+                ],
+            ],
+            'preview_image' => $this->fakeBase64Png(),
+            'print_image' => $this->fakeBase64Png(),
+        ])->assertRedirect('/ru');
+    }
+
     private function fakeBase64Png(): string
     {
         return 'data:image/png;base64,'.base64_encode(base64_decode(

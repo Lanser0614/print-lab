@@ -31,7 +31,7 @@ class OrderRequestController extends Controller
             ], 201);
         }
 
-        return redirect()->route('order-requests.success', ['id' => $orderRequest->id]);
+        return redirect()->route('home');
     }
 
     public function success(): View

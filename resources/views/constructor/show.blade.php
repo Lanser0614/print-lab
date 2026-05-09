@@ -35,7 +35,7 @@
         'routes' => [
             'constructor' => route('constructor.show', $product),
             'storeOrderRequest' => route('order-requests.store'),
-            'success' => route('order-requests.success'),
+            'success' => route('home'),
         ],
     ];
 @endphp
@@ -798,6 +798,100 @@ let nextId = 1;
 let history = [];
 let future = [];
 
+function constructorDraftKey(side = constructorConfig.printArea?.side || 'front') {
+  return [
+    'printlab.constructorDraft',
+    constructorConfig.product?.id || 'product',
+    side
+  ].join(':');
+}
+
+function saveCurrentSideDraft() {
+  try {
+    sessionStorage.setItem(constructorDraftKey(), JSON.stringify({
+      layers: serializeLayers(),
+      selectedId: selectedId ? String(selectedId) : null,
+    }));
+  } catch (error) {
+    // Draft persistence is best-effort; the constructor should keep working if storage is full.
+  }
+}
+
+function layerFromDraft(raw) {
+  const layer = {
+    id: raw.id,
+    type: raw.type,
+    name: raw.name,
+    x: Number(raw.x),
+    y: Number(raw.y),
+    rotation: Number(raw.rotation || 0),
+    scale: Number(raw.scale || 1),
+    opacity: Number(raw.opacity ?? 1),
+    blend: raw.blend || 'source-over',
+  };
+
+  if (raw.type === 'text') {
+    return {
+      ...layer,
+      text: raw.text || '',
+      fontFamily: raw.fontFamily || 'Syne',
+      fontSize: Number(raw.fontSize || 48),
+      color: raw.color || '#111111',
+      bold: !!raw.bold,
+    };
+  }
+
+  if (raw.type === 'image') {
+    return {
+      ...layer,
+      src: raw.src || '',
+      originalFileName: raw.originalFileName || raw.name || 'image.png',
+      w: Number(raw.width || raw.w || 160),
+      h: Number(raw.height || raw.h || 160),
+    };
+  }
+
+  return {
+    ...layer,
+    w: Number(raw.width || raw.w || 120),
+    h: Number(raw.height || raw.h || 80),
+    r: Number(raw.radius || raw.r || 50),
+    color: raw.color || '#007aff',
+  };
+}
+
+function restoreCurrentSideDraft() {
+  let draft;
+  try {
+    draft = JSON.parse(sessionStorage.getItem(constructorDraftKey()) || 'null');
+  } catch (error) {
+    return;
+  }
+
+  if (!Array.isArray(draft?.layers) || draft.layers.length === 0) return;
+
+  layers = draft.layers.map(layerFromDraft);
+  selectedId = draft.selectedId || layers[layers.length - 1]?.id || null;
+  nextId = layers.reduce((max, layer) => {
+    const id = Number(layer.id);
+    return Number.isFinite(id) ? Math.max(max, id + 1) : max;
+  }, nextId);
+
+  layers.forEach(layer => {
+    if (layer.type !== 'image' || !layer.src) return;
+
+    const img = new Image();
+    img.onload = () => { layer.img = img; renderAll(); };
+    img.src = layer.src;
+  });
+
+  refreshUI();
+}
+
+function clearConstructorDrafts() {
+  ['front', 'back'].forEach(side => sessionStorage.removeItem(constructorDraftKey(side)));
+}
+
 // Print zone as fraction of canvas
 const PZ = { fx: 0.22, fy: 0.18, fw: 0.56, fh: 0.56 };
 function getPZ() {
@@ -839,6 +933,7 @@ function loadProductMockup() {
 }
 
 function changeConstructorVariant(variantId) {
+  saveCurrentSideDraft();
   const url = new URL(constructorConfig.routes.constructor, window.location.origin);
   url.searchParams.set('variant', variantId);
   url.searchParams.set('side', document.getElementById('sideSelect').value || 'front');
@@ -846,6 +941,7 @@ function changeConstructorVariant(variantId) {
 }
 
 function changeConstructorSide(side) {
+  saveCurrentSideDraft();
   const url = new URL(constructorConfig.routes.constructor, window.location.origin);
   url.searchParams.set('variant', document.getElementById('variantSelect').value || constructorConfig.variant.id);
   url.searchParams.set('side', side);
@@ -1714,6 +1810,7 @@ async function submitOrderRequest(evt) {
     return;
   }
 
+  clearConstructorDrafts();
   window.location.href = constructorConfig.routes.success;
 }
 
@@ -1821,6 +1918,7 @@ canvas.addEventListener('touchend', () => {
 document.getElementById('orderForm').addEventListener('submit', submitOrderRequest);
 loadProductMockup();
 resizeCanvas();
+restoreCurrentSideDraft();
 </script>
 </body>
 </html>
