@@ -1006,6 +1006,11 @@ body.constructor-v2 .order-title {
       <a href="{{ route('catalog.index') }}#prints">{{ __('site.nav_prints') }}</a>
       <a href="{{ route('catalog.index') }}#products">{{ __('site.nav_create') }}</a>
       <a href="{{ route('home') }}#contacts">{{ __('site.nav_contacts') }}</a>
+      @auth
+        <a href="{{ route('account.index') }}">{{ __('auth.my_account') }}</a>
+      @else
+        <a href="{{ route('login') }}">{{ __('site.topbar_login') }}</a>
+      @endauth
     </nav>
   </div>
 </header>

@@ -26,7 +26,11 @@
             <a href="{{ route('home') }}#contacts">{{ __('site.topbar_partners') }}</a>
             <span class="pl-spacer"></span>
             <span class="pl-phone">+998 90 123 45 67</span>
-            <a href="{{ route('catalog.index') }}">{{ __('site.topbar_login') }}</a>
+            @auth
+                <a href="{{ route('account.index') }}">{{ __('auth.my_account') }}</a>
+            @else
+                <a href="{{ route('login') }}">{{ __('site.topbar_login') }}</a>
+            @endauth
         </div>
     </div>
 
@@ -42,9 +46,11 @@
             </form>
             <div class="pl-header-actions">
                 <x-language-switcher class="pl-language-switcher--header" />
-                <a href="{{ route('catalog.index') }}" class="pl-header-action"><span aria-hidden="true">◎</span><span>{{ __('site.header_profile') }}</span></a>
-                <a href="{{ route('catalog.index') }}" class="pl-header-action"><span aria-hidden="true">♡</span><span>{{ __('site.header_favorites') }}</span></a>
-                <a href="{{ route('catalog.index') }}" class="pl-header-action"><span aria-hidden="true">▣</span><span>{{ __('site.header_cart') }}</span></a>
+                @auth
+                    <a href="{{ route('account.index') }}" class="pl-header-action"><span aria-hidden="true">◎</span><span>{{ __('auth.my_account') }}</span></a>
+                @else
+                    <a href="{{ route('login') }}" class="pl-header-action"><span aria-hidden="true">◎</span><span>{{ __('site.topbar_login') }}</span></a>
+                @endauth
             </div>
         </div>
     </header>
@@ -91,7 +97,6 @@
                     <a class="pl-card" href="{{ route('constructor.show', $product) }}">
                         <div class="pl-card-img">
                             <div class="pl-card-tags"><span class="pl-card-tag new">new</span></div>
-                            <span class="pl-card-fav" aria-label="{{ __('site.header_favorites') }}">♡</span>
                             @if ($variant)
                                 <img src="{{ $variant->mockup_front_url }}" alt="{{ $product->localizedName() }}" style="width:100%;height:100%;object-fit:contain" loading="lazy">
                             @else

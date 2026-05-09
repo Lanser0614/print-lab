@@ -91,7 +91,14 @@
             <a href="#contacts"                             class="hover:text-zinc-950 hidden sm:inline">{{ __('site.nav_contacts') }}</a>
         </nav>
 
-        <x-language-switcher />
+        <div class="flex items-center gap-3">
+            @auth
+                <a href="{{ route('account.index') }}" class="text-sm font-medium text-zinc-700 hover:text-zinc-950">{{ __('auth.my_account') }}</a>
+            @else
+                <a href="{{ route('login') }}" class="text-sm font-medium text-zinc-700 hover:text-zinc-950">{{ __('site.topbar_login') }}</a>
+            @endauth
+            <x-language-switcher />
+        </div>
     </div>
 </header>
 

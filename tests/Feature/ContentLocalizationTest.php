@@ -137,6 +137,36 @@ class ContentLocalizationTest extends TestCase
             ->assertDontSee('Классическая футболка', false);
     }
 
+    public function test_catalog_header_removes_cart_and_favorites_and_links_to_login(): void
+    {
+        config()->set('printlab.redesign_v2_enabled', true);
+
+        $category = Category::factory()->create([
+            'slug' => 't-shirts',
+            'scope' => Category::SCOPE_PRODUCT,
+            'is_active' => true,
+        ]);
+
+        $product = Product::factory()->create(['is_active' => true]);
+        $product->categories()->attach($category);
+
+        $variant = ProductVariant::factory()->create([
+            'product_id' => $product->id,
+            'is_active' => true,
+        ]);
+        ProductPrintArea::factory()->create(['product_variant_id' => $variant->id]);
+
+        foreach (['/ru', '/ru/catalog'] as $url) {
+            $this->get($url)
+                ->assertOk()
+                ->assertSee('/ru/login', false)
+                ->assertSee('Войти', false)
+                ->assertDontSee('Избранное', false)
+                ->assertDontSee('Корзина', false)
+                ->assertDontSee('pl-card-fav', false);
+        }
+    }
+
     public function test_product_page_renders_hex_colour_swatch_and_size_choice(): void
     {
         $product = Product::factory()->create([

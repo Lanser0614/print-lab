@@ -29,6 +29,7 @@ final readonly class CreateOrderRequestUseCase
                 ->firstOrFail();
 
             $orderRequest = OrderRequest::query()->create([
+                'user_id' => $data->userId,
                 'status' => OrderRequestStatus::New,
                 'customer_name' => $data->customerName,
                 'customer_phone' => $data->customerPhone,

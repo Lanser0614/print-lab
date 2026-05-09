@@ -15,6 +15,7 @@ class OrderRequest extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'status',
         'customer_name',
         'customer_phone',
@@ -45,6 +46,11 @@ class OrderRequest extends Model
     public function assignedAdmin(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_admin_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function items(): HasMany

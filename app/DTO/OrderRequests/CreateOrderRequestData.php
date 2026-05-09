@@ -22,12 +22,13 @@ final readonly class CreateOrderRequestData
         public string $previewImage,
         public string $printImage,
         public array $assets,
+        public ?int $userId = null,
     ) {}
 
     /**
      * @param  array<string, mixed>  $validated
      */
-    public static function fromValidated(array $validated): self
+    public static function fromValidated(array $validated, ?int $userId = null): self
     {
         return new self(
             customerName: $validated['customer_name'],
@@ -43,6 +44,7 @@ final readonly class CreateOrderRequestData
             previewImage: $validated['preview_image'],
             printImage: $validated['print_image'],
             assets: $validated['assets'] ?? [],
+            userId: $userId,
         );
     }
 }
