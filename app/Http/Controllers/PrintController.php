@@ -8,7 +8,7 @@ use Illuminate\Contracts\View\View;
 
 class PrintController extends Controller
 {
-    public function show(Design $design): View
+    public function show(string $locale, Design $design): View
     {
         // Only show designs whose order is past the new/cancelled stage
         abort_unless(

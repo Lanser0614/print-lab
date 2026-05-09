@@ -44,7 +44,7 @@ class CatalogCategoriesTest extends TestCase
             'category_id' => $printCategory->id,
         ]);
 
-        $response = $this->get('/');
+        $response = $this->get('/ru');
 
         $response->assertOk();
         $response->assertSee('Футболки', false);
@@ -75,7 +75,7 @@ class CatalogCategoriesTest extends TestCase
         ]);
         $product->categories()->attach($filledCategory);
 
-        $response = $this->get('/catalog?category=' . $emptyCategory->slug);
+        $response = $this->get('/ru/catalog?category=' . $emptyCategory->slug);
 
         $response->assertOk();
         $response->assertSee('Товары пока не добавлены.', false);
@@ -99,11 +99,11 @@ class CatalogCategoriesTest extends TestCase
         ]);
         $product->categories()->attach($inactiveCategory);
 
-        $this->get('/')
+        $this->get('/ru')
             ->assertOk()
             ->assertDontSee('Скрытые товары', false);
 
-        $this->get('/catalog?category=' . $inactiveCategory->slug)
+        $this->get('/ru/catalog?category=' . $inactiveCategory->slug)
             ->assertOk()
             ->assertSee('Товары пока не добавлены.', false)
             ->assertDontSee('Товар из скрытой категории', false);

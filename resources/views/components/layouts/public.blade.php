@@ -13,6 +13,20 @@
     $canonical       = url()->current();
     $locale          = app()->getLocale();
     $ogLocale        = $locale === 'uz' ? 'uz_UZ' : 'ru_RU';
+    $localizedUrl = function (string $targetLocale): string {
+        $segments = request()->segments();
+
+        if (in_array($segments[0] ?? null, ['ru', 'uz'], true)) {
+            $segments[0] = $targetLocale;
+        } else {
+            array_unshift($segments, $targetLocale);
+        }
+
+        $url = url(implode('/', $segments));
+        $query = request()->getQueryString();
+
+        return $query ? $url . '?' . $query : $url;
+    };
 @endphp
 
 <!doctype html>
@@ -36,9 +50,9 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap">
 
     {{-- Hreflang --}}
-    <link rel="alternate" hreflang="ru"      href="{{ route('language.switch', 'ru') }}">
-    <link rel="alternate" hreflang="uz"      href="{{ route('language.switch', 'uz') }}">
-    <link rel="alternate" hreflang="x-default" href="{{ $canonical }}">
+    <link rel="alternate" hreflang="ru"      href="{{ $localizedUrl('ru') }}">
+    <link rel="alternate" hreflang="uz"      href="{{ $localizedUrl('uz') }}">
+    <link rel="alternate" hreflang="x-default" href="{{ $localizedUrl('ru') }}">
 
     {{-- Open Graph --}}
     <meta property="og:type"         content="website">
@@ -81,17 +95,7 @@
             <a href="#contacts"                             class="hover:text-zinc-950 hidden sm:inline">{{ __('site.nav_contacts') }}</a>
         </nav>
 
-        {{-- Language switcher --}}
-        <div class="flex shrink-0 items-center gap-1 text-sm font-semibold">
-            <a href="{{ route('language.switch', 'ru') }}"
-               class="rounded px-2 py-1 transition-colors {{ $locale === 'ru' ? 'bg-zinc-950 text-white' : 'text-zinc-400 hover:text-zinc-950' }}">
-                RU
-            </a>
-            <a href="{{ route('language.switch', 'uz') }}"
-               class="rounded px-2 py-1 transition-colors {{ $locale === 'uz' ? 'bg-zinc-950 text-white' : 'text-zinc-400 hover:text-zinc-950' }}">
-                UZ
-            </a>
-        </div>
+        <x-language-switcher />
     </div>
 </header>
 @endif

@@ -41,6 +41,7 @@
                 <button>Найти</button>
             </form>
             <div class="pl-header-actions">
+                <x-language-switcher class="pl-language-switcher--header" />
                 <a href="{{ route('catalog.index') }}" class="pl-header-action">
                     <span aria-hidden="true">◎</span>
                     <span>Профиль</span>
