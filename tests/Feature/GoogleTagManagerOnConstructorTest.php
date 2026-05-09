@@ -25,7 +25,10 @@ class GoogleTagManagerOnConstructorTest extends TestCase
         $response = $this->get(route('constructor.show', $product));
 
         $response->assertOk();
-        $response->assertSee('https://www.googletagmanager.com/gtm.js?id=GTM-PQSQLKKL', false);
+        // gtm.js URL is built at JS runtime; ID is passed as a JS string argument.
+        $response->assertSee('https://www.googletagmanager.com/gtm.js?id=', false);
+        $response->assertSee("'GTM-PQSQLKKL'", false);
+        // noscript iframe is rendered server-side, full URL is present.
         $response->assertSee('https://www.googletagmanager.com/ns.html?id=GTM-PQSQLKKL', false);
     }
 
@@ -40,7 +43,8 @@ class GoogleTagManagerOnConstructorTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('constructor-v2', false);
-        $response->assertSee('https://www.googletagmanager.com/gtm.js?id=GTM-PQSQLKKL', false);
+        $response->assertSee('https://www.googletagmanager.com/gtm.js?id=', false);
+        $response->assertSee("'GTM-PQSQLKKL'", false);
         $response->assertSee('https://www.googletagmanager.com/ns.html?id=GTM-PQSQLKKL', false);
     }
 

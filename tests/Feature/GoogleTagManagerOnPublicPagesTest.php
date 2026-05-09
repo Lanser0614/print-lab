@@ -16,7 +16,10 @@ class GoogleTagManagerOnPublicPagesTest extends TestCase
         $response = $this->get('/ru');
 
         $response->assertOk();
-        $response->assertSee('https://www.googletagmanager.com/gtm.js?id=GTM-PQSQLKKL', false);
+        // gtm.js URL is built at JS runtime: HTML has the literal path + the ID as a JS string.
+        $response->assertSee('https://www.googletagmanager.com/gtm.js?id=', false);
+        $response->assertSee("'GTM-PQSQLKKL'", false);
+        // noscript iframe URL is rendered server-side by Blade — full URL is in HTML.
         $response->assertSee('https://www.googletagmanager.com/ns.html?id=GTM-PQSQLKKL', false);
     }
 

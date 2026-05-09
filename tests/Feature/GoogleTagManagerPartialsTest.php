@@ -12,7 +12,10 @@ class GoogleTagManagerPartialsTest extends TestCase
 
         $html = view('partials.gtm-head')->render();
 
-        $this->assertStringContainsString('https://www.googletagmanager.com/gtm.js?id=GTM-PQSQLKKL', $html);
+        // The gtm.js URL is concatenated at runtime in JavaScript ('?id='+i+dl),
+        // so the HTML contains the literal path and the ID as a JS string argument.
+        $this->assertStringContainsString('https://www.googletagmanager.com/gtm.js?id=', $html);
+        $this->assertStringContainsString("'GTM-PQSQLKKL'", $html);
         $this->assertStringContainsString('dataLayer', $html);
         $this->assertStringContainsString("'gtm.start'", $html);
     }

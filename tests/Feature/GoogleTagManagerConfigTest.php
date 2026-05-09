@@ -6,11 +6,14 @@ use Tests\TestCase;
 
 class GoogleTagManagerConfigTest extends TestCase
 {
-    public function test_gtm_container_id_defaults_to_null(): void
+    public function test_gtm_container_id_defaults_to_empty(): void
     {
+        // .env.example ships with GTM_CONTAINER_ID= (empty), so env() may
+        // return either null or an empty string depending on the loader.
+        // Either way it must be treated as "GTM disabled".
         config()->set('services.gtm.container_id', env('GTM_CONTAINER_ID'));
 
-        $this->assertNull(config('services.gtm.container_id'));
+        $this->assertEmpty(config('services.gtm.container_id'));
     }
 
     public function test_gtm_container_id_reads_env_value(): void
