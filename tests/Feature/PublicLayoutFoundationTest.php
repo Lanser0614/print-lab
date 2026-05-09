@@ -11,7 +11,7 @@ class PublicLayoutFoundationTest extends TestCase
 
     public function test_public_layout_loads_manrope_font(): void
     {
-        $response = $this->get('/');
+        $response = $this->get('/ru');
 
         $response->assertOk();
         $response->assertSee('https://fonts.googleapis.com', false);

@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 
 class ConstructorController extends Controller
 {
-    public function show(Request $request, Product $product): View
+    public function show(Request $request, string $locale, Product $product): View
     {
         return $this->renderConstructor(
             $request,
@@ -20,7 +20,7 @@ class ConstructorController extends Controller
         );
     }
 
-    public function v2(Request $request, Product $product): View
+    public function v2(Request $request, string $locale, Product $product): View
     {
         return $this->renderConstructor($request, $product, 'constructor.v2');
     }

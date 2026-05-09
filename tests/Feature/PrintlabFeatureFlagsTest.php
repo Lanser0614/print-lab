@@ -36,7 +36,7 @@ class PrintlabFeatureFlagsTest extends TestCase
             'dpi' => 300,
         ]);
 
-        $response = $this->get('/');
+        $response = $this->get('/ru');
 
         $response->assertOk();
         $response->assertSee('pl-hero', false);

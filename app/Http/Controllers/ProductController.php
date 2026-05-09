@@ -7,7 +7,7 @@ use Illuminate\Contracts\View\View;
 
 class ProductController extends Controller
 {
-    public function show(Product $product): View
+    public function show(string $locale, Product $product): View
     {
         return view('products.show', [
             'product' => $product->load(['variants.printAreas']),
