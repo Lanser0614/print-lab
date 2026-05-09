@@ -4,6 +4,7 @@ namespace App\Services\Ai;
 
 use App\Exceptions\AiImageGenerationFailed;
 use App\Exceptions\AiImageGenerationNotConfigured;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
 class OpenAiImageGenerator implements ImageGenerator
@@ -15,18 +16,24 @@ class OpenAiImageGenerator implements ImageGenerator
         }
     }
 
+    /**
+     * @param string $prompt
+     * @param string|null $referenceImageDataUrl
+     * @return ImageGenerationResult
+     */
     public function generate(string $prompt, ?string $referenceImageDataUrl = null): ImageGenerationResult
     {
         $this->assertConfigured();
 
         $model = (string) config('services.openai.image_model', 'gpt-image-1-mini');
+//        $model = 'gpt-image-1';
         $endpoint = $referenceImageDataUrl
             ? 'https://api.openai.com/v1/images/edits'
             : 'https://api.openai.com/v1/images/generations';
 
         $payload = [
             'model' => $model,
-            'prompt' => $prompt,
+            'prompt' => $this->printArtworkPrompt($prompt),
             'n' => 1,
             'size' => '1024x1024',
             'quality' => 'medium',
@@ -39,9 +46,20 @@ class OpenAiImageGenerator implements ImageGenerator
             ];
         }
 
-        $response = Http::withToken((string) config('services.openai.api_key'))
-            ->asJson()
-            ->post($endpoint, $payload);
+        try {
+            $response = Http::withToken((string) config('services.openai.api_key'))
+                ->asJson()
+                ->throw()
+                ->connectTimeout(10)
+                ->timeout(180)
+                ->retry(2, 500, fn ($exception) => $exception instanceof ConnectionException, throw: false)
+                ->post($endpoint, $payload);
+        } catch (\Throwable $exception) {
+            throw new AiImageGenerationFailed(
+                'OpenAI image connection failed: '.$exception->getMessage(),
+                previous: $exception,
+            );
+        }
 
         if ($response->failed()) {
             throw new AiImageGenerationFailed('OpenAI image request failed with status '.$response->status());
@@ -71,5 +89,18 @@ class OpenAiImageGenerator implements ImageGenerator
                 'usage' => $response->json('usage'),
             ],
         );
+    }
+
+    private function printArtworkPrompt(string $prompt): string
+    {
+        return trim(<<<PROMPT
+Generate only the standalone artwork intended for printing on a product.
+Do not generate a t-shirt, apparel mockup, product photo, hanger, model, or room scene.
+The output should be centered print artwork, logo, mascot, lettering, or illustration.
+Prefer a clean plain or transparent-looking background.
+
+User request:
+{$prompt}
+PROMPT);
     }
 }

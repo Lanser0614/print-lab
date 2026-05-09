@@ -23,7 +23,7 @@ class GeneratedPrintController extends Controller
             return response()->json([
                 'message' => 'AI print generation is not configured.',
             ], 503);
-        } catch (AiImageGenerationFailed) {
+        } catch (AiImageGenerationFailed $e) {
             return response()->json([
                 'message' => 'AI print generation failed.',
             ], 502);

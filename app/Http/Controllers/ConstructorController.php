@@ -25,6 +25,11 @@ class ConstructorController extends Controller
         return $this->renderConstructor($request, $product, 'constructor.v2');
     }
 
+    public function aiStudio(Request $request, string $locale, Product $product): View
+    {
+        return $this->renderConstructor($request, $product, 'constructor.ai-studio');
+    }
+
     private function renderConstructor(Request $request, Product $product, string $view): View
     {
         $variant = $this->resolveVariant($request, $product);

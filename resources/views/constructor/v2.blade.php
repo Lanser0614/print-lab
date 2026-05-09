@@ -387,6 +387,12 @@ input[type=color] { width: 36px; height: 30px; border-radius: 6px; border: 1px s
 .ai-print-message.error { color: var(--accent2); }
 .ai-print-message.success { color: #15803d; }
 .ai-generate-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.ai-studio-link {
+  display: flex;
+  justify-content: center;
+  text-decoration: none;
+  text-align: center;
+}
 
 /* TOAST */
 .toast {
@@ -1109,6 +1115,7 @@ body.constructor-v2 .order-title {
           <span id="aiReferencePreviewText">{{ __('site.constructor_ai_reference_loaded') }}</span>
         </div>
         <button class="btn btn-primary ai-generate-btn" id="aiGenerateBtn" type="button" onclick="handleAiGenerate()" disabled>{{ __('site.constructor_ai_generate') }}</button>
+        <a class="btn btn-ghost ai-studio-link" href="{{ route('ai-studio.show', ['product' => $product, 'variant' => $variant->id, 'side' => $side]) }}">{{ __('site.ai_studio_short_link') }}</a>
         <div class="ai-print-message" id="aiPrintMessage"></div>
       </div>
     </div>
@@ -1315,6 +1322,7 @@ body.constructor-v2 .order-title {
 const canvas = document.getElementById('mainCanvas');
 const ctx = canvas.getContext('2d');
 const constructorConfig = window.constructorConfig || {};
+const AI_STUDIO_STORAGE_KEY = 'printlab.pendingAiPrint';
 
 // Scale canvas to fit area
 function resizeCanvas() {
@@ -1911,6 +1919,31 @@ function addGeneratedImageLayer({ dataUrl, imageUrl, fileName, sourceId }) {
   };
   img.onerror = () => showAiPrintMessage(@json(__('site.constructor_ai_load_error')), 'error');
   img.src = dataUrl;
+}
+
+function loadPendingAiPrint() {
+  const raw = sessionStorage.getItem(AI_STUDIO_STORAGE_KEY);
+  if (!raw) return;
+
+  sessionStorage.removeItem(AI_STUDIO_STORAGE_KEY);
+
+  let pending;
+  try {
+    pending = JSON.parse(raw);
+  } catch (error) {
+    return;
+  }
+
+  if (!pending?.dataUrl) return;
+  if (pending.productId && Number(pending.productId) !== Number(constructorConfig.product.id)) return;
+  if (pending.variantId && Number(pending.variantId) !== Number(constructorConfig.variant.id)) return;
+
+  addGeneratedImageLayer({
+    dataUrl: pending.dataUrl,
+    imageUrl: pending.imageUrl || null,
+    fileName: pending.fileName || 'ai-print.png',
+    sourceId: pending.generatedPrintId || null,
+  });
 }
 
 async function handleAiGenerate() {
@@ -2556,6 +2589,7 @@ canvas.addEventListener('touchend', () => {
 document.getElementById('orderForm').addEventListener('submit', submitOrderRequest);
 loadProductMockup();
 resizeCanvas();
+loadPendingAiPrint();
 </script>
 </body>
 </html>

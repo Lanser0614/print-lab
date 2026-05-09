@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\GeneratedPrint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -164,7 +165,9 @@ class GeneratedPrintApiTest extends TestCase
         Storage::disk('public')->assertExists($generatedPrint->generated_image_path);
         Http::assertSent(fn ($request) => $request->url() === 'https://api.openai.com/v1/images/generations'
             && $request['model'] === 'gpt-image-1-mini'
-            && $request['prompt'] === 'Minimal logo for PrintLab');
+            && str_contains($request['prompt'], 'Minimal logo for PrintLab')
+            && str_contains($request['prompt'], 'standalone artwork intended for printing')
+            && str_contains($request['prompt'], 'Do not generate a t-shirt'));
     }
 
     public function test_reference_image_is_stored_and_sent_to_openai_edit_endpoint(): void
@@ -197,7 +200,9 @@ class GeneratedPrintApiTest extends TestCase
         $this->assertNotNull($generatedPrint->reference_image_path);
         Storage::disk('public')->assertExists($generatedPrint->reference_image_path);
         Http::assertSent(fn ($request) => $request->url() === 'https://api.openai.com/v1/images/edits'
-            && $request['prompt'] === 'Use this logo as reference'
+            && str_contains($request['prompt'], 'Use this logo as reference')
+            && str_contains($request['prompt'], 'standalone artwork intended for printing')
+            && str_contains($request['prompt'], 'Do not generate a t-shirt')
             && $request['images'][0]['image_url'] === $referenceImage);
     }
 
@@ -241,6 +246,33 @@ class GeneratedPrintApiTest extends TestCase
         $this->assertSame('failed', $generatedPrint->status);
         $this->assertNull($generatedPrint->generated_image_path);
         $this->assertNotNull($generatedPrint->error_message);
+    }
+
+    public function test_openai_connection_error_returns_bad_gateway_and_saves_failed_record(): void
+    {
+        Storage::fake('public');
+        config([
+            'services.openai.image_driver' => 'openai',
+            'services.openai.api_key' => 'test-key',
+            'services.openai.image_model' => 'gpt-image-1-mini',
+        ]);
+
+        Http::fake([
+            'api.openai.com/v1/images/generations' => function (): never {
+                throw new ConnectionException('cURL error 18: end of response with bytes missing');
+            },
+        ]);
+
+        $this->postJson('/api/generated-prints', [
+            'prompt' => 'Minimal logo',
+        ])->assertStatus(502)
+            ->assertJsonPath('message', 'AI print generation failed.');
+
+        $generatedPrint = GeneratedPrint::query()->firstOrFail();
+
+        $this->assertSame('failed', $generatedPrint->status);
+        $this->assertNull($generatedPrint->generated_image_path);
+        $this->assertStringContainsString('OpenAI image connection failed', $generatedPrint->error_message);
     }
 
     private function fakeBase64Png(): string
