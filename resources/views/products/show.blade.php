@@ -160,6 +160,12 @@
                     <span>🎨</span>
                     <span>{{ __('site.catalog_constructor') }}</span>
                 </a>
+                <a id="ctaAiStudio"
+                   href="{{ route('ai-studio.show', ['product' => $product, 'variant' => $firstVariant->id]) }}"
+                   class="flex items-center justify-center gap-2 rounded-xl bg-red-600 px-6 py-4 text-base font-semibold text-white transition-all hover:bg-red-700 active:scale-[0.98]">
+                    <span>AI</span>
+                    <span>{{ __('site.product_create_with_ai') }}</span>
+                </a>
                 <a href="{{ route('catalog.index') }}"
                    class="flex items-center justify-center rounded-xl border border-zinc-200 px-6 py-3 text-sm font-medium text-zinc-600 transition-all hover:border-zinc-400 hover:text-zinc-950">
                     ← {{ __('site.nav_catalog') }}
@@ -189,6 +195,7 @@
 <script>
 const variants       = @json($variantData);
 const constructorBase = '{{ route('constructor.show', $product) }}';
+const aiStudioBase = '{{ route('ai-studio.show', $product) }}';
 
 let currentSide      = 'front';
 let currentColour    = '{{ $firstVariant->color }}';
@@ -217,6 +224,7 @@ function applyVariant(v) {
 
     // Update CTA
     document.getElementById('ctaConstructor').href = constructorBase + '?variant=' + v.id;
+    document.getElementById('ctaAiStudio').href = aiStudioBase + '?variant=' + v.id;
 
     // Update thumbnails
     document.querySelectorAll('[data-variant-thumb]').forEach(el => {

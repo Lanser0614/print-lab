@@ -49,7 +49,9 @@ final readonly class CreateGeneratedPrintUseCase
                 'status' => 'failed',
                 'error_message' => $exception->getMessage(),
                 'guest_fingerprint' => $fingerprint,
-                'metadata' => ['driver' => config('services.openai.image_driver', 'fake')],
+                'metadata' => [
+                    'driver' => config('services.openai.image_driver', 'fake'),
+                ],
             ]);
 
             throw $exception;

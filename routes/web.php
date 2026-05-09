@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\AiImageGenerationFailed;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\DesignDownloadController;
 use App\Http\Controllers\Auth\TelegramLoginController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function (Request $request) {
     $locale = $request->session()->get('locale', $request->cookie('locale', 'ru'));
@@ -42,6 +44,7 @@ Route::prefix('{locale}')
         Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
         Route::get('/prints/{design}', [PrintController::class, 'show'])->name('prints.show');
         Route::get('/constructor', [ConstructorController::class, 'localFallback'])->name('constructor.fallback');
+        Route::get('/ai-studio/{product:slug}', [ConstructorController::class, 'aiStudio'])->name('ai-studio.show');
         Route::get('/constructor/v2/{product:slug}', [ConstructorController::class, 'v2'])->name('constructor.v2');
         Route::get('/constructor/{product:slug}', [ConstructorController::class, 'show'])->name('constructor.show');
         Route::post('/order-requests', [OrderRequestController::class, 'store'])->name('order-requests.store');
@@ -82,3 +85,25 @@ Route::middleware('auth')
 Route::get('/test', function () {
    return 'ok';
 });
+
+
+//Route::get('/openapi', function (\App\Services\Ai\OpenAiImageGenerator $imageGenerator) {
+//
+//
+//    try {
+//        $result = $imageGenerator->generate('My name is Doniyor Anvarov and i am php developer make for me personal logo. make more aksent to php and elephant', null);
+//
+//    } catch (AiImageGenerationFailed $exception) {
+//        dd($exception);
+//    }
+//
+//    $generatedImagePath = sprintf(
+//        'generated-prints/%s.%s',
+//        (string) str()->uuid(),
+//        $result->extension,
+//    );
+//
+//    Storage::disk('public')->put($generatedImagePath, $result->binary);
+//
+//    dd($generatedImagePath);
+//});
