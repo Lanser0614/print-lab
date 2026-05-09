@@ -43,7 +43,7 @@ final readonly class CreateOrderRequestUseCase
             $item = $orderRequest->items()->create([
                 'product_id' => $product->id,
                 'product_variant_id' => $variant->id,
-                'product_name_snapshot' => $product->name,
+                'product_name_snapshot' => $product->localizedName(),
                 'product_type_snapshot' => $product->type,
                 'color_snapshot' => $variant->color,
                 'size_snapshot' => $variant->size,

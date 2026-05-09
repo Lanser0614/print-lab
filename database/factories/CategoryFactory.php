@@ -17,6 +17,10 @@ class CategoryFactory extends Factory
 
         return [
             'name' => $name,
+            'name_translations' => [
+                'ru' => $name,
+                'uz' => $name,
+            ],
             'slug' => Str::slug($name).'-'.fake()->unique()->numberBetween(1000, 9999),
             'scope' => Category::SCOPE_PRINT,
             'icon_svg' => null,

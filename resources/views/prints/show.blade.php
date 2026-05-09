@@ -3,7 +3,7 @@
         ? Storage::disk('public')->url($design->preview_image_path)
         : null;
 
-    $productName = $item->product_name_snapshot ?? $product?->name ?? 'PrintLab';
+    $productName = $item->product_name_snapshot ?? $product?->localizedName() ?? 'PrintLab';
     $colorLabel  = $item->color_snapshot ?? null;
     $sizeLabel   = $item->size_snapshot ?? null;
 

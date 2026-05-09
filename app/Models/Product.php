@@ -14,11 +14,17 @@ class Product extends Model
     /** @use HasFactory<ProductFactory> */
     use HasFactory;
 
-    protected $fillable = ['name', 'slug', 'type', 'base_price', 'is_active'];
+    protected $fillable = ['name', 'name_translations', 'slug', 'type', 'base_price', 'is_active'];
 
     protected $casts = [
+        'name_translations' => 'array',
         'type' => ProductType::class,
     ];
+
+    public function localizedName(?string $locale = null): string
+    {
+        return $this->localizedValue($this->name_translations, $this->name, $locale);
+    }
 
     public function categories(): BelongsToMany
     {
@@ -28,5 +34,20 @@ class Product extends Model
     public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);
+    }
+
+    private function localizedValue(?array $translations, string $fallback, ?string $locale = null): string
+    {
+        $locale ??= app()->getLocale();
+
+        foreach ([$locale, 'ru'] as $candidate) {
+            $value = $translations[$candidate] ?? null;
+
+            if (is_string($value) && trim($value) !== '') {
+                return $value;
+            }
+        }
+
+        return $fallback;
     }
 }

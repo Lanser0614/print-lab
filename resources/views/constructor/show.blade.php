@@ -1,8 +1,9 @@
 @php
+    $productName = $product->localizedName();
     $constructorConfig = [
         'product' => [
             'id' => $product->id,
-            'name' => $product->name,
+            'name' => $productName,
             'slug' => $product->slug,
             'base_price' => $product->base_price,
         ],
@@ -41,19 +42,20 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+@include('partials.gtm-head')
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>{{ __('site.seo_constructor_title', ['product' => $product->name]) }}</title>
-<meta name="description" content="{{ __('site.seo_constructor_description', ['product' => $product->name]) }}">
+<title>{{ __('site.seo_constructor_title', ['product' => $productName]) }}</title>
+<meta name="description" content="{{ __('site.seo_constructor_description', ['product' => $productName]) }}">
 <meta name="robots" content="noindex, nofollow">
-<meta property="og:title"       content="{{ __('site.seo_constructor_title', ['product' => $product->name]) }}">
-<meta property="og:description" content="{{ __('site.seo_constructor_description', ['product' => $product->name]) }}">
+<meta property="og:title"       content="{{ __('site.seo_constructor_title', ['product' => $productName]) }}">
+<meta property="og:description" content="{{ __('site.seo_constructor_description', ['product' => $productName]) }}">
 <meta property="og:type"        content="website">
 <meta property="og:site_name"   content="PrintLab">
 <meta name="twitter:card"        content="summary">
-<meta name="twitter:title"       content="{{ __('site.seo_constructor_title', ['product' => $product->name]) }}">
-<meta name="twitter:description" content="{{ __('site.seo_constructor_description', ['product' => $product->name]) }}">
+<meta name="twitter:title"       content="{{ __('site.seo_constructor_title', ['product' => $productName]) }}">
+<meta name="twitter:description" content="{{ __('site.seo_constructor_description', ['product' => $productName]) }}">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script>window.constructorConfig = {{ Illuminate\Support\Js::from($constructorConfig) }};</script>
 <style>
@@ -505,16 +507,17 @@ input[type=color] { width: 36px; height: 30px; border-radius: 6px; border: 1px s
 </style>
 </head>
 <body>
+@include('partials.gtm-body')
 
 <!-- SITE HEADER -->
 <header class="site-header">
   <div class="site-header-inner">
     <a class="site-logo" href="{{ route('home') }}">PrintLab</a>
-    <nav class="site-nav" aria-label="Главное меню">
-      <a href="{{ route('catalog.index') }}">Каталог</a>
-      <a href="{{ route('catalog.index') }}#prints">Готовые принты</a>
-      <a href="{{ route('catalog.index') }}#products">Создать свой принт</a>
-      <a href="{{ route('home') }}#contacts">Контакты</a>
+    <nav class="site-nav" aria-label="{{ __('site.constructor_main_menu') }}">
+      <a href="{{ route('catalog.index') }}">{{ __('site.nav_catalog') }}</a>
+      <a href="{{ route('catalog.index') }}#prints">{{ __('site.nav_prints') }}</a>
+      <a href="{{ route('catalog.index') }}#products">{{ __('site.nav_create') }}</a>
+      <a href="{{ route('home') }}#contacts">{{ __('site.nav_contacts') }}</a>
     </nav>
   </div>
 </header>
@@ -522,16 +525,16 @@ input[type=color] { width: 36px; height: 30px; border-radius: 6px; border: 1px s
 <!-- CONSTRUCTOR TOOLBAR -->
 <div class="header">
   <div class="designer-product">
-    <div class="designer-product-title">{{ $product->name }}</div>
+    <div class="designer-product-title">{{ $productName }}</div>
     <div class="designer-product-meta">
       {{ $variant->color }}@if($variant->size) / {{ $variant->size }}@endif
       · {{ number_format($product->base_price + $variant->price_modifier, 0, '.', ' ') }} UZS
     </div>
   </div>
   <div class="header-center">
-    <button class="undo-btn" onclick="undo()" title="Отменить">↩</button>
-    <button class="add-btn" onclick="toggleAddMenu()" title="Добавить">+</button>
-    <button class="undo-btn" onclick="redo()" title="Повторить">↪</button>
+    <button class="undo-btn" onclick="undo()" title="{{ __('site.constructor_undo') }}">↩</button>
+    <button class="add-btn" onclick="toggleAddMenu()" title="{{ __('site.constructor_add') }}">+</button>
+    <button class="undo-btn" onclick="redo()" title="{{ __('site.constructor_redo') }}">↪</button>
   </div>
   <div class="header-right">
     <button class="btn btn-ghost" onclick="exportPrintOnly()">{{ __('site.constructor_print_btn') }}</button>
@@ -604,7 +607,7 @@ input[type=color] { width: 36px; height: 30px; border-radius: 6px; border: 1px s
     <div class="canvas-wrap" id="canvasWrap">
       <canvas id="mainCanvas"></canvas>
       <div class="zone-hint" id="zoneHint">
-        <span class="zone-hint-label" id="zoneLabel">зона принта</span>
+        <span class="zone-hint-label" id="zoneLabel">{{ __('site.constructor_print_zone') }}</span>
       </div>
     </div>
   </div>
@@ -630,18 +633,18 @@ input[type=color] { width: 36px; height: 30px; border-radius: 6px; border: 1px s
         </select>
       </div>
       <div class="field-group">
-        <div class="field-label">Размер <span class="field-val" id="fsVal">48</span>px</div>
+        <div class="field-label">{{ __('site.constructor_size') }} <span class="field-val" id="fsVal">48</span>px</div>
         <input type="range" id="fontSizeR" min="12" max="200" value="48" oninput="document.getElementById('fsVal').textContent=this.value;updateSelectedText()">
       </div>
       <div class="field-group">
-        <div class="field-label">Цвет</div>
+        <div class="field-label">{{ __('site.constructor_color') }}</div>
         <div class="color-row">
           <input type="color" id="textColorPick" value="#000000" oninput="updateSelectedText()">
           <input type="text" id="textColorHex" value="#000000" placeholder="#000000" style="flex:1" oninput="syncTxtColor()">
         </div>
       </div>
       <div class="field-group">
-        <div class="field-label">Жирный</div>
+        <div class="field-label">{{ __('site.constructor_bold') }}</div>
         <button class="btn btn-ghost" id="boldBtn" onclick="toggleBold()" style="width:100%">B</button>
       </div>
     </div>
@@ -664,7 +667,7 @@ input[type=color] { width: 36px; height: 30px; border-radius: 6px; border: 1px s
       <div class="field-group">
         <div class="field-label">{{ __('site.constructor_blend') }}</div>
         <select id="blendSel" onchange="updateTransform('blend',this.value)">
-          <option value="source-over">Обычный</option>
+          <option value="source-over">{{ __('site.constructor_normal_blend') }}</option>
           <option value="multiply">Multiply</option>
           <option value="screen">Screen</option>
           <option value="overlay">Overlay</option>
@@ -681,7 +684,7 @@ input[type=color] { width: 36px; height: 30px; border-radius: 6px; border: 1px s
       <div class="panel-label">{{ __('site.constructor_layers') }} <span style="color:var(--accent);font-weight:600" id="layerCnt">0</span></div>
     </div>
     <div class="layers-list" id="layersList">
-      <div class="layers-empty" id="layersEmpty">Нажми + чтобы добавить элемент</div>
+      <div class="layers-empty" id="layersEmpty">{{ __('site.constructor_empty_layers') }}</div>
     </div>
 
     <div class="export-section">
@@ -825,7 +828,7 @@ function loadProductMockup() {
     productMockupError = true;
     shirtImg = null;
     renderAll();
-    showToast('Не удалось загрузить изображение товара. Попробуйте обновить страницу.');
+    showToast(@json(__('site.constructor_product_image_load_error')));
   };
   img.src = url;
 }
@@ -1018,7 +1021,7 @@ function loadShirtPhoto(evt) {
       shirtImg = img;
       productMockupError = false;
       renderAll();
-      showToast('Фото товара загружено!');
+      showToast(@json(__('site.constructor_product_loaded')));
     };
     img.src = e.target.result;
   };
@@ -1039,7 +1042,7 @@ function drawShirt() {
     ctx.font = `${Math.max(13, canvas.width * 0.026)}px DM Sans, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    wrapCanvasText('Не удалось загрузить изображение товара. Попробуйте обновить страницу.', canvas.width / 2, canvas.height / 2, canvas.width * 0.72, canvas.width * 0.04);
+    wrapCanvasText(@json(__('site.constructor_product_image_load_error')), canvas.width / 2, canvas.height / 2, canvas.width * 0.72, canvas.width * 0.04);
     ctx.restore();
   } else {
     ctx.save();
@@ -1047,7 +1050,7 @@ function drawShirt() {
     ctx.font = `${Math.max(13, canvas.width * 0.026)}px DM Sans, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('Загрузка товара...', canvas.width / 2, canvas.height / 2);
+    ctx.fillText(@json(__('site.constructor_product_loading')), canvas.width / 2, canvas.height / 2);
     ctx.restore();
   }
 }
@@ -1245,7 +1248,7 @@ function addImage(evt) {
       layers.push(layer);
       selectedId = layer.id;
       refreshUI();
-      showToast('🖼 Изображение добавлено!');
+      showToast(@json(__('site.constructor_image_added')));
     };
     img.src = e.target.result;
   };
@@ -1266,13 +1269,13 @@ function addText() {
     bold: false,
     x: pz.x + pz.w/2, y: pz.y + pz.h/2,
     rotation: 0, scale: 1, opacity: 1, blend: 'source-over',
-    name: 'Текст'
+    name: @json(__('site.constructor_text'))
   };
   layers.push(layer);
   selectedId = layer.id;
   refreshUI();
   document.getElementById('textInput').value = layer.text;
-  showToast('✍️ Текст добавлен!');
+  showToast(@json(__('site.constructor_text_added')));
 }
 
 function addShape(type) {
@@ -1286,7 +1289,7 @@ function addShape(type) {
     color: colors[type] || '#007aff',
     x: pz.x + pz.w/2, y: pz.y + pz.h/2,
     rotation: 0, scale: 1, opacity: 1, blend: 'source-over',
-    name: type === 'rect' ? 'Форма' : type === 'circle' ? 'Круг' : 'Звезда'
+    name: type === 'rect' ? @json(__('site.constructor_shape')) : type === 'circle' ? @json(__('site.constructor_circle')) : @json(__('site.constructor_star'))
   };
   layers.push(layer);
   selectedId = layer.id;
@@ -1361,7 +1364,7 @@ function updateSelectedText() {
   sel.fontFamily = document.getElementById('fontSel').value;
   sel.fontSize = parseInt(document.getElementById('fontSizeR').value);
   sel.color = document.getElementById('textColorPick').value;
-  sel.name = sel.text.substring(0,14) || 'Текст';
+  sel.name = sel.text.substring(0,14) || @json(__('site.constructor_text'));
   document.getElementById('textColorHex').value = sel.color;
   updateLayersList();
   renderAll();
@@ -1516,9 +1519,9 @@ function undo() {
   if (!history.length) return;
   future.push(JSON.stringify(layers.map(l => { const {img,...r}=l; return r; })));
   // Simple undo — just remove last layer for simplicity
-  showToast('↩ Отменено');
+  showToast(@json(__('site.constructor_undone')));
 }
-function redo() { showToast('↪ Повторено'); }
+function redo() { showToast(@json(__('site.constructor_redone'))); }
 
 // ============================================================
 // ADD MENU
@@ -1548,7 +1551,7 @@ function exportFull() {
   link.href = canvas.toDataURL('image/png');
   link.click();
   selectedId = prev; renderAll();
-  showToast('👕 Сохранено!');
+  showToast(@json(__('site.constructor_saved')));
 }
 
 function exportPrintOnly() {
@@ -1556,7 +1559,7 @@ function exportPrintOnly() {
   link.download = 'print_only.png';
   link.href = getPrintOnlyDataUrl();
   link.click();
-  showToast('🖨 Принт сохранён!');
+  showToast(@json(__('site.constructor_print_saved')));
 }
 
 function getFullDataUrl() {
@@ -1710,7 +1713,7 @@ async function submitOrderRequest(evt) {
 }
 
 async function exportLayers() {
-  if (!layers.length) { showToast('⚠️ Нет слоёв'); return; }
+  if (!layers.length) { showToast(@json(__('site.constructor_no_layers'))); return; }
   const pz = getPZ();
   for (let i = 0; i < layers.length; i++) {
     const layer = layers[i];
@@ -1745,7 +1748,7 @@ async function exportLayers() {
       link.click(); res();
     }, i * 350));
   }
-  showToast(`📦 ${layers.length} слоёв сохранено`);
+  showToast(@json(__('site.constructor_layers_saved', ['count' => '__COUNT__'])).replace('__COUNT__', layers.length));
 }
 
 // ============================================================

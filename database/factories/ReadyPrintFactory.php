@@ -19,6 +19,10 @@ class ReadyPrintFactory extends Factory
         return [
             'category_id' => Category::factory(),
             'title' => $title,
+            'title_translations' => [
+                'ru' => $title,
+                'uz' => $title,
+            ],
             'slug' => Str::slug($title).'-'.fake()->unique()->numberBetween(1000, 9999),
             'image_path' => 'prints/sample.png',
             'is_active' => true,

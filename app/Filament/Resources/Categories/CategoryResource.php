@@ -49,11 +49,17 @@ class CategoryResource extends Resource
                     ->columns(2)
                     ->schema([
                         TextInput::make('name')
-                            ->label('Название')
+                            ->label('Название по умолчанию')
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Set $set, ?string $state): mixed => $set('slug', Str::slug($state ?? ''))),
+                        TextInput::make('name_translations.ru')
+                            ->label('Название RU')
+                            ->maxLength(255),
+                        TextInput::make('name_translations.uz')
+                            ->label('Название UZ')
+                            ->maxLength(255),
                         TextInput::make('slug')
                             ->label('Slug')
                             ->required()
@@ -94,6 +100,7 @@ class CategoryResource extends Resource
                     ->sortable(),
                 TextColumn::make('name')
                     ->label('Название')
+                    ->formatStateUsing(fn (string $state, Category $record): string => $record->localizedName('ru'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('slug')

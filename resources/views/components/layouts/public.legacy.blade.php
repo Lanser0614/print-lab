@@ -31,6 +31,8 @@
 <!doctype html>
 <html lang="{{ $locale }}">
 <head>
+    @include('partials.gtm-head')
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -76,6 +78,7 @@
     @stack('head')
 </head>
 <body class="bg-zinc-50 text-zinc-950 antialiased">
+@include('partials.gtm-body')
 
 <header class="border-b border-zinc-200 bg-white">
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">

@@ -55,11 +55,17 @@ class ReadyPrintResource extends Resource
                     ->columns(2)
                     ->schema([
                         TextInput::make('title')
-                            ->label('Название')
+                            ->label('Название по умолчанию')
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Set $set, ?string $state): mixed => $set('slug', Str::slug($state ?? ''))),
+                        TextInput::make('title_translations.ru')
+                            ->label('Название RU')
+                            ->maxLength(255),
+                        TextInput::make('title_translations.uz')
+                            ->label('Название UZ')
+                            ->maxLength(255),
                         TextInput::make('slug')
                             ->label('Slug')
                             ->required()
@@ -104,6 +110,7 @@ class ReadyPrintResource extends Resource
                     ->square(),
                 TextColumn::make('title')
                     ->label('Название')
+                    ->formatStateUsing(fn (string $state, ReadyPrint $record): string => $record->localizedTitle('ru'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('category.name')

@@ -17,6 +17,10 @@ class ProductFactory extends Factory
 
         return [
             'name' => $name,
+            'name_translations' => [
+                'ru' => $name,
+                'uz' => $name,
+            ],
             'slug' => Str::slug($name).'-'.fake()->unique()->numberBetween(1000, 9999),
             'type' => fake()->randomElement(['t-shirt', 'mug']),
             'base_price' => fake()->numberBetween(80000, 180000),
