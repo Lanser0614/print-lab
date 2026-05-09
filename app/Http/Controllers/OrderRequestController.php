@@ -15,7 +15,12 @@ class OrderRequestController extends Controller
         StoreOrderRequestRequest $request,
         CreateOrderRequestUseCase $useCase,
     ): JsonResponse|RedirectResponse {
-        $orderRequest = $useCase->execute(CreateOrderRequestData::fromValidated($request->validated()));
+        $orderRequest = $useCase->execute(
+            CreateOrderRequestData::fromValidated(
+                $request->validated(),
+                userId: auth()->id(),
+            ),
+        );
 
         if ($request->expectsJson()) {
             return response()->json([

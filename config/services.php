@@ -45,4 +45,12 @@ return [
         'container_id' => env('GTM_CONTAINER_ID', 'GTM-PQSQLKKL'),
     ],
 
+    'telegram' => [
+        'driver' => env('TELEGRAM_AUTH_DRIVER', 'fake'),
+        'bot_username' => env('TELEGRAM_BOT_USERNAME'),
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),
+        'login_token_ttl' => (int) env('TELEGRAM_LOGIN_TOKEN_TTL', 300),
+    ],
+
 ];

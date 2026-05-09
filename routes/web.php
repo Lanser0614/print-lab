@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\DesignDownloadController;
+use App\Http\Controllers\Auth\TelegramLoginController;
+use App\Http\Controllers\Auth\TelegramWebhookController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ConstructorController;
 use App\Http\Controllers\OrderRequestController;
@@ -43,7 +46,27 @@ Route::prefix('{locale}')
         Route::get('/constructor/{product:slug}', [ConstructorController::class, 'show'])->name('constructor.show');
         Route::post('/order-requests', [OrderRequestController::class, 'store'])->name('order-requests.store');
         Route::get('/order-request/success', [OrderRequestController::class, 'success'])->name('order-requests.success');
+
+        Route::get('/login', [TelegramLoginController::class, 'show'])->name('login');
+        Route::post('/auth/telegram/start', [TelegramLoginController::class, 'start'])
+            ->middleware('throttle:30,1')
+            ->name('auth.telegram.start');
+        Route::get('/auth/telegram/poll/{token}', [TelegramLoginController::class, 'poll'])
+            ->middleware('throttle:120,1')
+            ->name('auth.telegram.poll');
+        Route::post('/auth/logout', [TelegramLoginController::class, 'logout'])
+            ->middleware('auth')
+            ->name('auth.logout');
+
+        Route::middleware('auth')->group(function (): void {
+            Route::get('/account', [AccountController::class, 'index'])->name('account.index');
+            Route::get('/account/order-requests/{orderRequest}', [AccountController::class, 'show'])
+                ->name('account.order-requests.show');
+        });
     });
+
+Route::post('/telegram/webhook', [TelegramWebhookController::class, 'handle'])
+    ->name('telegram.webhook');
 
 Route::middleware('auth')
     ->prefix('admin/downloads')

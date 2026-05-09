@@ -518,6 +518,11 @@ input[type=color] { width: 36px; height: 30px; border-radius: 6px; border: 1px s
       <a href="{{ route('catalog.index') }}#prints">{{ __('site.nav_prints') }}</a>
       <a href="{{ route('catalog.index') }}#products">{{ __('site.nav_create') }}</a>
       <a href="{{ route('home') }}#contacts">{{ __('site.nav_contacts') }}</a>
+      @auth
+        <a href="{{ route('account.index') }}">{{ __('auth.my_account') }}</a>
+      @else
+        <a href="{{ route('login') }}">{{ __('site.topbar_login') }}</a>
+      @endauth
     </nav>
   </div>
 </header>
