@@ -58,11 +58,17 @@ class ProductResource extends Resource
                     ->columns(2)
                     ->schema([
                         TextInput::make('name')
-                            ->label('Название')
+                            ->label('Название по умолчанию')
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Set $set, ?string $state): mixed => $set('slug', Str::slug($state ?? ''))),
+                        TextInput::make('name_translations.ru')
+                            ->label('Название RU')
+                            ->maxLength(255),
+                        TextInput::make('name_translations.uz')
+                            ->label('Название UZ')
+                            ->maxLength(255),
                         TextInput::make('slug')
                             ->label('Slug')
                             ->required()
@@ -109,7 +115,7 @@ class ProductResource extends Resource
                             ->columns(2)
                             ->schema([
                                 TextInput::make('color')
-                                    ->label('Цвет')
+                                    ->label('Цвет (HEX)')
                                     ->required()
                                     ->maxLength(255),
                                 TextInput::make('size')
@@ -206,6 +212,7 @@ class ProductResource extends Resource
                     ->sortable(),
                 TextColumn::make('name')
                     ->label('Название')
+                    ->formatStateUsing(fn (string $state, Product $record): string => $record->localizedName('ru'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('slug')
@@ -218,6 +225,7 @@ class ProductResource extends Resource
                 TextColumn::make('categories.name')
                     ->label('Категории')
                     ->badge()
+                    ->formatStateUsing(fn (?string $state): string => $state ?? '')
                     ->separator(',')
                     ->toggleable(),
                 TextColumn::make('base_price')

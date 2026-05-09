@@ -266,6 +266,24 @@ docker compose exec app ./vendor/bin/phpstan analyse
 
 - `/storage/...`
 
+## Аналитика
+
+Подключение Google Tag Manager идёт через два partial-шаблона:
+
+- `resources/views/partials/gtm-head.blade.php` — `<script>` для `<head>`
+- `resources/views/partials/gtm-body.blade.php` — `<noscript>` сразу после `<body>`
+
+Эти партиалы вставлены через `@include` в:
+
+- `resources/views/components/layouts/public.blade.php`
+- `resources/views/components/layouts/public.legacy.blade.php`
+- `resources/views/constructor/show.blade.php`
+- `resources/views/constructor/v2.blade.php`
+
+Filament-админка (`/admin`) GTM не подключает.
+
+ID контейнера читается из переменной окружения `GTM_CONTAINER_ID` через `config('services.gtm.container_id')`. Если переменная пустая — partials рендерят пустую строку, никаких сторонних скриптов на страницах не появляется. Это удобно для local/test окружений.
+
 ## Что не входит в текущую версию
 
 В текущей версии не реализованы:

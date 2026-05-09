@@ -1,8 +1,9 @@
 @php
+    $productName = $product->localizedName();
     $constructorConfig = [
         'product' => [
             'id' => $product->id,
-            'name' => $product->name,
+            'name' => $productName,
             'slug' => $product->slug,
             'base_price' => $product->base_price,
         ],
@@ -42,19 +43,20 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+@include('partials.gtm-head')
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>{{ __('site.seo_constructor_title', ['product' => $product->name]) }}</title>
-<meta name="description" content="{{ __('site.seo_constructor_description', ['product' => $product->name]) }}">
+<title>{{ __('site.seo_constructor_title', ['product' => $productName]) }}</title>
+<meta name="description" content="{{ __('site.seo_constructor_description', ['product' => $productName]) }}">
 <meta name="robots" content="noindex, nofollow">
-<meta property="og:title"       content="{{ __('site.seo_constructor_title', ['product' => $product->name]) }}">
-<meta property="og:description" content="{{ __('site.seo_constructor_description', ['product' => $product->name]) }}">
+<meta property="og:title"       content="{{ __('site.seo_constructor_title', ['product' => $productName]) }}">
+<meta property="og:description" content="{{ __('site.seo_constructor_description', ['product' => $productName]) }}">
 <meta property="og:type"        content="website">
 <meta property="og:site_name"   content="PrintLab">
 <meta name="twitter:card"        content="summary">
-<meta name="twitter:title"       content="{{ __('site.seo_constructor_title', ['product' => $product->name]) }}">
-<meta name="twitter:description" content="{{ __('site.seo_constructor_description', ['product' => $product->name]) }}">
+<meta name="twitter:title"       content="{{ __('site.seo_constructor_title', ['product' => $productName]) }}">
+<meta name="twitter:description" content="{{ __('site.seo_constructor_description', ['product' => $productName]) }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -993,34 +995,35 @@ body.constructor-v2 .order-title {
 </style>
 </head>
 <body class="constructor-v2">
+@include('partials.gtm-body')
 
 <!-- SITE HEADER -->
 <header class="site-header">
   <div class="site-header-inner">
     <a class="site-logo" href="{{ route('home') }}">PrintLab</a>
-    <nav class="site-nav" aria-label="Главное меню">
-      <a href="{{ route('catalog.index') }}">Каталог</a>
-      <a href="{{ route('catalog.index') }}#prints">Готовые принты</a>
-      <a href="{{ route('catalog.index') }}#products">Создать свой принт</a>
-      <a href="{{ route('home') }}#contacts">Контакты</a>
+    <nav class="site-nav" aria-label="{{ __('site.constructor_main_menu') }}">
+      <a href="{{ route('catalog.index') }}">{{ __('site.nav_catalog') }}</a>
+      <a href="{{ route('catalog.index') }}#prints">{{ __('site.nav_prints') }}</a>
+      <a href="{{ route('catalog.index') }}#products">{{ __('site.nav_create') }}</a>
+      <a href="{{ route('home') }}#contacts">{{ __('site.nav_contacts') }}</a>
     </nav>
   </div>
 </header>
 
 <!-- CONSTRUCTOR TOOLBAR -->
 <div class="header">
-  <a class="constructor-logo" href="{{ route('home') }}" aria-label="На главную">PrintLab</a>
+  <a class="constructor-logo" href="{{ route('home') }}" aria-label="{{ __('site.constructor_home') }}">PrintLab</a>
   <div class="designer-product">
-    <div class="designer-product-title">{{ $product->name }}</div>
+    <div class="designer-product-title">{{ $productName }}</div>
     <div class="designer-product-meta">
       {{ $variant->color }}@if($variant->size) / {{ $variant->size }}@endif
       · {{ number_format($product->base_price + $variant->price_modifier, 0, '.', ' ') }} UZS
     </div>
   </div>
   <div class="header-center">
-    <button class="undo-btn" onclick="undo()" title="Отменить">↩</button>
-    <button class="add-btn" onclick="toggleAddMenu()" title="Добавить">+</button>
-    <button class="undo-btn" onclick="redo()" title="Повторить">↪</button>
+    <button class="undo-btn" onclick="undo()" title="{{ __('site.constructor_undo') }}">↩</button>
+    <button class="add-btn" onclick="toggleAddMenu()" title="{{ __('site.constructor_add') }}">+</button>
+    <button class="undo-btn" onclick="redo()" title="{{ __('site.constructor_redo') }}">↪</button>
   </div>
   <div class="header-right">
     <button class="btn btn-ghost" onclick="exportPrintOnly()">{{ __('site.constructor_print_btn') }}</button>
@@ -1061,17 +1064,17 @@ body.constructor-v2 .order-title {
 
   <!-- LEFT: product selector -->
   <div class="panel-left">
-    <div class="v2-tool-tabs" aria-label="Инструменты конструктора">
-      <button class="v2-tool-tab active" type="button" onclick="toggleAddMenu()"><strong>✦</strong>Принты</button>
+    <div class="v2-tool-tabs" aria-label="{{ __('site.constructor_settings') }}">
+      <button class="v2-tool-tab active" type="button" onclick="toggleAddMenu()"><strong>✦</strong>{{ __('site.constructor_tool_prints') }}</button>
       <label class="v2-tool-tab">
-        <strong>↥</strong>Фото
+        <strong>↥</strong>{{ __('site.constructor_photo') }}
         <input type="file" accept="image/*" style="display:none" onchange="addImage(event)">
       </label>
-      <button class="v2-tool-tab" type="button" onclick="addText()"><strong>T</strong>Текст</button>
-      <button class="v2-tool-tab" type="button" onclick="addShape('rect')"><strong>□</strong>Фигуры</button>
+      <button class="v2-tool-tab" type="button" onclick="addText()"><strong>T</strong>{{ __('site.constructor_text') }}</button>
+      <button class="v2-tool-tab" type="button" onclick="addShape('rect')"><strong>□</strong>{{ __('site.constructor_shape') }}</button>
     </div>
     <div class="v2-left-section">
-      <div class="selector-label">Быстрый старт</div>
+      <div class="selector-label">{{ __('site.constructor_quick_start') }}</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
         <button class="add-menu-btn" type="button" onclick="addShape('star')"><span class="ami">★</span>Star</button>
         <button class="add-menu-btn" type="button" onclick="addShape('circle')"><span class="ami">○</span>Circle</button>
@@ -1081,26 +1084,26 @@ body.constructor-v2 .order-title {
     <div class="v2-left-section" id="desktopAiPrintMount">
       <div class="ai-print-panel" id="aiPrintPanel" data-ai-generate-route="/api/generated-prints">
         <div class="ai-print-head">
-          <div class="ai-print-title">AI-принт</div>
+          <div class="ai-print-title">{{ __('site.constructor_ai_print') }}</div>
           <div class="ai-prompt-counter" id="aiPromptCounter">0/250</div>
         </div>
         <textarea
           class="ai-prompt-input"
           id="aiPromptInput"
           maxlength="250"
-          placeholder="Например: минимальный логотип кофейни в стиле streetwear"
+          placeholder="{{ __('site.constructor_ai_placeholder') }}"
           oninput="updateAiPromptCounter()"
         ></textarea>
         <label class="ai-reference-label" for="aiReferenceInput">
-          Логотип / референс
+          {{ __('site.constructor_ai_reference') }}
           <input id="aiReferenceInput" type="file" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="updateAiReferencePreview()">
         </label>
         <div class="ai-reference-name" id="aiReferenceName"></div>
         <div class="ai-reference-preview" id="aiReferencePreview">
           <img id="aiReferencePreviewImg" alt="Preview">
-          <span id="aiReferencePreviewText">Референс загружен</span>
+          <span id="aiReferencePreviewText">{{ __('site.constructor_ai_reference_loaded') }}</span>
         </div>
-        <button class="btn btn-primary ai-generate-btn" id="aiGenerateBtn" type="button" onclick="handleAiGenerate()" disabled>Сгенерировать</button>
+        <button class="btn btn-primary ai-generate-btn" id="aiGenerateBtn" type="button" onclick="handleAiGenerate()" disabled>{{ __('site.constructor_ai_generate') }}</button>
         <div class="ai-print-message" id="aiPrintMessage"></div>
       </div>
     </div>
@@ -1136,7 +1139,7 @@ body.constructor-v2 .order-title {
     <div class="canvas-wrap" id="canvasWrap">
       <canvas id="mainCanvas"></canvas>
       <div class="zone-hint" id="zoneHint">
-        <span class="zone-hint-label" id="zoneLabel">зона принта</span>
+        <span class="zone-hint-label" id="zoneLabel">{{ __('site.constructor_print_zone') }}</span>
       </div>
     </div>
   </div>
@@ -1162,18 +1165,18 @@ body.constructor-v2 .order-title {
         </select>
       </div>
       <div class="field-group">
-        <div class="field-label">Размер <span class="field-val" id="fsVal">48</span>px</div>
+        <div class="field-label">{{ __('site.constructor_size') }} <span class="field-val" id="fsVal">48</span>px</div>
         <input type="range" id="fontSizeR" min="12" max="200" value="48" oninput="document.getElementById('fsVal').textContent=this.value;updateSelectedText()">
       </div>
       <div class="field-group">
-        <div class="field-label">Цвет</div>
+        <div class="field-label">{{ __('site.constructor_color') }}</div>
         <div class="color-row">
           <input type="color" id="textColorPick" value="#000000" oninput="updateSelectedText()">
           <input type="text" id="textColorHex" value="#000000" placeholder="#000000" style="flex:1" oninput="syncTxtColor()">
         </div>
       </div>
       <div class="field-group">
-        <div class="field-label">Жирный</div>
+        <div class="field-label">{{ __('site.constructor_bold') }}</div>
         <button class="btn btn-ghost" id="boldBtn" onclick="toggleBold()" style="width:100%">B</button>
       </div>
     </div>
@@ -1196,7 +1199,7 @@ body.constructor-v2 .order-title {
       <div class="field-group">
         <div class="field-label">{{ __('site.constructor_blend') }}</div>
         <select id="blendSel" onchange="updateTransform('blend',this.value)">
-          <option value="source-over">Обычный</option>
+          <option value="source-over">{{ __('site.constructor_normal_blend') }}</option>
           <option value="multiply">Multiply</option>
           <option value="screen">Screen</option>
           <option value="overlay">Overlay</option>
@@ -1213,7 +1216,7 @@ body.constructor-v2 .order-title {
       <div class="panel-label">{{ __('site.constructor_layers') }} <span style="color:var(--accent);font-weight:600" id="layerCnt">0</span></div>
     </div>
     <div class="layers-list" id="layersList">
-      <div class="layers-empty" id="layersEmpty">Нажми + чтобы добавить элемент</div>
+      <div class="layers-empty" id="layersEmpty">{{ __('site.constructor_empty_layers') }}</div>
     </div>
 
     <div class="export-section">
@@ -1236,7 +1239,7 @@ body.constructor-v2 .order-title {
   </button>
   <button class="mobile-tab-btn mobile-ai-print-featured" id="mTabAi" onclick="mobileSwitchTab('ai')">
     <span class="tab-icon">AI</span>
-    <span>Принт</span>
+    <span>{{ __('site.constructor_print_btn') }}</span>
   </button>
   <button class="mobile-add-fab" onclick="toggleAddMenu()" aria-label="{{ __('site.constructor_add_element') }}">+</button>
   <button class="mobile-tab-btn" id="mTabVariants" onclick="mobileSwitchTab('variants')">
@@ -1367,7 +1370,7 @@ function loadProductMockup() {
     productMockupError = true;
     shirtImg = null;
     renderAll();
-    showToast('Не удалось загрузить изображение товара. Попробуйте обновить страницу.');
+    showToast(@json(__('site.constructor_product_image_load_error')));
   };
   img.src = url;
 }
@@ -1560,7 +1563,7 @@ function loadShirtPhoto(evt) {
       shirtImg = img;
       productMockupError = false;
       renderAll();
-      showToast('Фото товара загружено!');
+      showToast(@json(__('site.constructor_product_loaded')));
     };
     img.src = e.target.result;
   };
@@ -1581,7 +1584,7 @@ function drawShirt() {
     ctx.font = `${Math.max(13, canvas.width * 0.026)}px DM Sans, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    wrapCanvasText('Не удалось загрузить изображение товара. Попробуйте обновить страницу.', canvas.width / 2, canvas.height / 2, canvas.width * 0.72, canvas.width * 0.04);
+    wrapCanvasText(@json(__('site.constructor_product_image_load_error')), canvas.width / 2, canvas.height / 2, canvas.width * 0.72, canvas.width * 0.04);
     ctx.restore();
   } else {
     ctx.save();
@@ -1589,7 +1592,7 @@ function drawShirt() {
     ctx.font = `${Math.max(13, canvas.width * 0.026)}px DM Sans, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('Загрузка товара...', canvas.width / 2, canvas.height / 2);
+    ctx.fillText(@json(__('site.constructor_product_loading')), canvas.width / 2, canvas.height / 2);
     ctx.restore();
   }
 }
@@ -1787,7 +1790,7 @@ function addImage(evt) {
       layers.push(layer);
       selectedId = layer.id;
       refreshUI();
-      showToast('🖼 Изображение добавлено!');
+      showToast(@json(__('site.constructor_image_added')));
     };
     img.src = e.target.result;
   };
@@ -1889,7 +1892,7 @@ function addGeneratedImageLayer({ dataUrl, imageUrl, fileName, sourceId }) {
       x: pz.x + pz.w / 2, y: pz.y + pz.h / 2,
       w: img.width * ratio, h: img.height * ratio,
       rotation: 0, scale: 1, opacity: 1, blend: 'source-over',
-      name: 'AI-принт',
+      name: @json(__('site.constructor_ai_print')),
       src: dataUrl,
       originalFileName: fileName || 'ai-print.png',
       generatedPrintId: sourceId || null,
@@ -1898,10 +1901,10 @@ function addGeneratedImageLayer({ dataUrl, imageUrl, fileName, sourceId }) {
     layers.push(layer);
     selectedId = layer.id;
     refreshUI();
-    showAiPrintMessage('AI-принт добавлен', 'success');
-    showToast('AI-принт добавлен');
+    showAiPrintMessage(@json(__('site.constructor_ai_added')), 'success');
+    showToast(@json(__('site.constructor_ai_added')));
   };
-  img.onerror = () => showAiPrintMessage('Не удалось загрузить сгенерированный принт', 'error');
+  img.onerror = () => showAiPrintMessage(@json(__('site.constructor_ai_load_error')), 'error');
   img.src = dataUrl;
 }
 
@@ -1910,13 +1913,13 @@ async function handleAiGenerate() {
   const btn = document.getElementById('aiGenerateBtn');
   const prompt = input ? input.value.trim() : '';
   if (!prompt) {
-    showAiPrintMessage('Введите описание принта', 'error');
+    showAiPrintMessage(@json(__('site.constructor_ai_prompt_required')), 'error');
     return;
   }
 
   btn.disabled = true;
-  btn.textContent = 'Генерация...';
-  showAiPrintMessage('Генерируем принт...');
+  btn.textContent = @json(__('site.constructor_ai_generating'));
+  showAiPrintMessage(@json(__('site.constructor_ai_generating_message')));
 
   try {
     const referenceImage = await readAiReferenceImage();
@@ -1937,13 +1940,13 @@ async function handleAiGenerate() {
 
     if (!response.ok) {
       if (response.status === 422) {
-        showAiPrintMessage(payload.message || 'Проверьте описание и референс', 'error');
+        showAiPrintMessage(payload.message || @json(__('site.constructor_ai_validation_error')), 'error');
       } else if (response.status === 429) {
-        showAiPrintMessage('Сегодня доступно только 2 AI-генерации', 'error');
+        showAiPrintMessage(@json(__('site.constructor_ai_daily_limit')), 'error');
       } else if (response.status === 503) {
-        showAiPrintMessage('AI-генерация пока не настроена', 'error');
+        showAiPrintMessage(@json(__('site.constructor_ai_not_configured')), 'error');
       } else {
-        showAiPrintMessage('Не удалось сгенерировать принт. Попробуйте ещё раз', 'error');
+        showAiPrintMessage(@json(__('site.constructor_ai_failed')), 'error');
       }
       return;
     }
@@ -1957,9 +1960,9 @@ async function handleAiGenerate() {
       sourceId: data.id,
     });
   } catch (error) {
-    showAiPrintMessage('Не удалось сгенерировать принт. Попробуйте ещё раз', 'error');
+    showAiPrintMessage(@json(__('site.constructor_ai_failed')), 'error');
   } finally {
-    btn.textContent = 'Сгенерировать';
+    btn.textContent = @json(__('site.constructor_ai_generate'));
     updateAiPromptCounter();
   }
 }
@@ -1976,13 +1979,13 @@ function addText() {
     bold: false,
     x: pz.x + pz.w/2, y: pz.y + pz.h/2,
     rotation: 0, scale: 1, opacity: 1, blend: 'source-over',
-    name: 'Текст'
+    name: @json(__('site.constructor_text'))
   };
   layers.push(layer);
   selectedId = layer.id;
   refreshUI();
   document.getElementById('textInput').value = layer.text;
-  showToast('✍️ Текст добавлен!');
+  showToast(@json(__('site.constructor_text_added')));
 }
 
 function addShape(type) {
@@ -1996,7 +1999,7 @@ function addShape(type) {
     color: colors[type] || '#007aff',
     x: pz.x + pz.w/2, y: pz.y + pz.h/2,
     rotation: 0, scale: 1, opacity: 1, blend: 'source-over',
-    name: type === 'rect' ? 'Форма' : type === 'circle' ? 'Круг' : 'Звезда'
+    name: type === 'rect' ? @json(__('site.constructor_shape')) : type === 'circle' ? @json(__('site.constructor_circle')) : @json(__('site.constructor_star'))
   };
   layers.push(layer);
   selectedId = layer.id;
@@ -2071,7 +2074,7 @@ function updateSelectedText() {
   sel.fontFamily = document.getElementById('fontSel').value;
   sel.fontSize = parseInt(document.getElementById('fontSizeR').value);
   sel.color = document.getElementById('textColorPick').value;
-  sel.name = sel.text.substring(0,14) || 'Текст';
+  sel.name = sel.text.substring(0,14) || @json(__('site.constructor_text'));
   document.getElementById('textColorHex').value = sel.color;
   updateLayersList();
   renderAll();
@@ -2226,9 +2229,9 @@ function undo() {
   if (!history.length) return;
   future.push(JSON.stringify(layers.map(l => { const {img,...r}=l; return r; })));
   // Simple undo — just remove last layer for simplicity
-  showToast('↩ Отменено');
+  showToast(@json(__('site.constructor_undone')));
 }
-function redo() { showToast('↪ Повторено'); }
+function redo() { showToast(@json(__('site.constructor_redone'))); }
 
 // ============================================================
 // ADD MENU
@@ -2258,7 +2261,7 @@ function exportFull() {
   link.href = canvas.toDataURL('image/png');
   link.click();
   selectedId = prev; renderAll();
-  showToast('👕 Сохранено!');
+  showToast(@json(__('site.constructor_saved')));
 }
 
 function exportPrintOnly() {
@@ -2266,7 +2269,7 @@ function exportPrintOnly() {
   link.download = 'print_only.png';
   link.href = getPrintOnlyDataUrl();
   link.click();
-  showToast('🖨 Принт сохранён!');
+  showToast(@json(__('site.constructor_print_saved')));
 }
 
 function getFullDataUrl() {
@@ -2422,7 +2425,7 @@ async function submitOrderRequest(evt) {
 }
 
 async function exportLayers() {
-  if (!layers.length) { showToast('⚠️ Нет слоёв'); return; }
+  if (!layers.length) { showToast(@json(__('site.constructor_no_layers'))); return; }
   const pz = getPZ();
   for (let i = 0; i < layers.length; i++) {
     const layer = layers[i];
@@ -2457,7 +2460,7 @@ async function exportLayers() {
       link.click(); res();
     }, i * 350));
   }
-  showToast(`📦 ${layers.length} слоёв сохранено`);
+  showToast(@json(__('site.constructor_layers_saved', ['count' => '__COUNT__'])).replace('__COUNT__', layers.length));
 }
 
 // ============================================================

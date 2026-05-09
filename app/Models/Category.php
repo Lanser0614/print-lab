@@ -19,6 +19,7 @@ class Category extends Model
 
     protected $fillable = [
         'name',
+        'name_translations',
         'slug',
         'scope',
         'icon_svg',
@@ -27,8 +28,14 @@ class Category extends Model
     ];
 
     protected $casts = [
+        'name_translations' => 'array',
         'is_active' => 'boolean',
     ];
+
+    public function localizedName(?string $locale = null): string
+    {
+        return $this->localizedValue($this->name_translations, $this->name, $locale);
+    }
 
     public function readyPrints(): HasMany
     {
@@ -38,5 +45,20 @@ class Category extends Model
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class);
+    }
+
+    private function localizedValue(?array $translations, string $fallback, ?string $locale = null): string
+    {
+        $locale ??= app()->getLocale();
+
+        foreach ([$locale, 'ru'] as $candidate) {
+            $value = $translations[$candidate] ?? null;
+
+            if (is_string($value) && trim($value) !== '') {
+                return $value;
+            }
+        }
+
+        return $fallback;
     }
 }

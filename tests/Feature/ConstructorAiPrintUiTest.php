@@ -97,9 +97,23 @@ class ConstructorAiPrintUiTest extends TestCase
             ->assertSee('response.status === 422', false)
             ->assertSee('response.status === 429', false)
             ->assertSee('response.status === 503', false)
-            ->assertSee('Сегодня доступно только 2 AI-генерации', false)
-            ->assertSee('AI-генерация пока не настроена', false)
-            ->assertSee('Не удалось сгенерировать принт', false);
+            ->assertSee($this->jsonTranslation('site.constructor_ai_daily_limit', 'ru'), false)
+            ->assertSee($this->jsonTranslation('site.constructor_ai_not_configured', 'ru'), false)
+            ->assertSee($this->jsonTranslation('site.constructor_ai_failed', 'ru'), false);
+    }
+
+    public function test_constructor_v2_renders_uzbek_ai_print_messages(): void
+    {
+        $product = $this->productWithVariant();
+
+        $response = $this->get(route('constructor.v2', ['locale' => 'uz', 'product' => $product]));
+
+        $response
+            ->assertOk()
+            ->assertSee($this->jsonTranslation('site.constructor_ai_daily_limit', 'uz'), false)
+            ->assertSee($this->jsonTranslation('site.constructor_ai_not_configured', 'uz'), false)
+            ->assertSee($this->jsonTranslation('site.constructor_ai_failed', 'uz'), false)
+            ->assertDontSee($this->jsonTranslation('site.constructor_ai_daily_limit', 'ru'), false);
     }
 
     private function productWithVariant(): Product
@@ -116,5 +130,10 @@ class ConstructorAiPrintUiTest extends TestCase
         ]);
 
         return $product;
+    }
+
+    private function jsonTranslation(string $key, string $locale): string
+    {
+        return json_encode(__($key, [], $locale), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
     }
 }

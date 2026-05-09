@@ -17,16 +17,16 @@
 
     <div class="pl-topbar">
         <div class="pl-container" style="display:flex;align-items:center;width:100%">
-            <span class="pl-city">Ташкент</span>
+            <span class="pl-city">{{ __('site.city_tashkent') }}</span>
             <span style="width:24px"></span>
-            <a href="#benefits">Доставка</a>
-            <a href="#benefits">Оплата</a>
-            <a href="#benefits">Гарантия</a>
-            <a href="#contacts">Помощь</a>
-            <a href="#contacts">Партнёрам</a>
+            <a href="#benefits">{{ __('site.topbar_delivery') }}</a>
+            <a href="#benefits">{{ __('site.topbar_payment') }}</a>
+            <a href="#benefits">{{ __('site.topbar_warranty') }}</a>
+            <a href="#contacts">{{ __('site.topbar_help') }}</a>
+            <a href="#contacts">{{ __('site.topbar_partners') }}</a>
             <span class="pl-spacer"></span>
             <span class="pl-phone">+998 90 123 45 67</span>
-            <a href="{{ route('catalog.index') }}">Войти</a>
+            <a href="{{ route('catalog.index') }}">{{ __('site.topbar_login') }}</a>
         </div>
     </div>
 
@@ -37,23 +37,23 @@
                 <span class="pl-logo-text">Print<span>Lab</span></span>
             </a>
             <form class="pl-search" action="{{ route('catalog.index') }}">
-                <input name="q" placeholder="Найти принт, футболку, мем...">
-                <button>Найти</button>
+                <input name="q" placeholder="{{ __('site.header_search_placeholder') }}">
+                <button>{{ __('site.header_search_button') }}</button>
             </form>
             <div class="pl-header-actions">
                 <x-language-switcher class="pl-language-switcher--header" />
                 <a href="{{ route('catalog.index') }}" class="pl-header-action">
                     <span aria-hidden="true">◎</span>
-                    <span>Профиль</span>
+                    <span>{{ __('site.header_profile') }}</span>
                 </a>
                 <a href="{{ route('catalog.index') }}" class="pl-header-action">
                     <span aria-hidden="true">♡</span>
-                    <span>Избранное</span>
+                    <span>{{ __('site.header_favorites') }}</span>
                     <span class="pl-badge">7</span>
                 </a>
                 <a href="{{ route('catalog.index') }}" class="pl-header-action">
                     <span aria-hidden="true">▣</span>
-                    <span>Корзина</span>
+                    <span>{{ __('site.header_cart') }}</span>
                     <span class="pl-badge">3</span>
                 </a>
             </div>
@@ -62,17 +62,17 @@
 
     <nav class="pl-nav">
         <div class="pl-container pl-nav-row">
-            <a href="{{ route('catalog.index') }}" class="pl-nav-cat">☰ КАТАЛОГ</a>
+            <a href="{{ route('catalog.index') }}" class="pl-nav-cat">☰ {{ mb_strtoupper(__('site.nav_catalog')) }}</a>
             <ul>
-                <li class="active"><a href="{{ $constructorUrl }}">Конструктор <span class="pl-nav-tag">HIT</span></a></li>
-                @if ($activeProductCategories->has('t-shirts'))<li><a href="{{ $categoryUrl('t-shirts') }}">Футболки</a></li>@endif
-                @if ($activeProductCategories->has('hoodies'))<li><a href="{{ $categoryUrl('hoodies') }}">Худи</a></li>@endif
-                @if ($activeProductCategories->has('sweatshirts'))<li><a href="{{ $categoryUrl('sweatshirts') }}">Свитшоты</a></li>@endif
-                @if ($activeProductCategories->has('longsleeves'))<li><a href="{{ $categoryUrl('longsleeves') }}">Лонгсливы</a></li>@endif
-                @if ($activePrintCategories->has('memes'))<li><a href="{{ $printCategoryUrl('memes') }}">Мемы <span class="pl-nav-tag">NEW</span></a></li>@endif
-                @if ($activeProductCategories->has('custom-products'))<li><a href="{{ $categoryUrl('custom-products') }}">Парные</a></li>@endif
-                @if ($activeProductCategories->has('kids'))<li><a href="{{ $categoryUrl('kids') }}">Детям</a></li>@endif
-                <li><a href="{{ route('catalog.index') }}">Распродажа</a></li>
+                <li class="active"><a href="{{ $constructorUrl }}">{{ __('site.catalog_constructor') }} <span class="pl-nav-tag">HIT</span></a></li>
+                @if ($activeProductCategories->has('t-shirts'))<li><a href="{{ $categoryUrl('t-shirts') }}">{{ $activeProductCategories->get('t-shirts')->localizedName() }}</a></li>@endif
+                @if ($activeProductCategories->has('hoodies'))<li><a href="{{ $categoryUrl('hoodies') }}">{{ $activeProductCategories->get('hoodies')->localizedName() }}</a></li>@endif
+                @if ($activeProductCategories->has('sweatshirts'))<li><a href="{{ $categoryUrl('sweatshirts') }}">{{ $activeProductCategories->get('sweatshirts')->localizedName() }}</a></li>@endif
+                @if ($activeProductCategories->has('longsleeves'))<li><a href="{{ $categoryUrl('longsleeves') }}">{{ $activeProductCategories->get('longsleeves')->localizedName() }}</a></li>@endif
+                @if ($activePrintCategories->has('memes'))<li><a href="{{ $printCategoryUrl('memes') }}">{{ $activePrintCategories->get('memes')->localizedName() }} <span class="pl-nav-tag">NEW</span></a></li>@endif
+                @if ($activeProductCategories->has('custom-products'))<li><a href="{{ $categoryUrl('custom-products') }}">{{ $activeProductCategories->get('custom-products')->localizedName() }}</a></li>@endif
+                @if ($activeProductCategories->has('kids'))<li><a href="{{ $categoryUrl('kids') }}">{{ $activeProductCategories->get('kids')->localizedName() }}</a></li>@endif
+                <li><a href="{{ route('catalog.index') }}">{{ __('site.nav_sale') }}</a></li>
             </ul>
         </div>
     </nav>
@@ -82,10 +82,10 @@
             <div class="pl-hero">
                 <div class="pl-hero-main">
                     <div class="pl-hero-content">
-                        <span class="pl-hero-badge">Скидка −40% до конца недели</span>
-                        <h1>Создай <em>свою</em><br>футболку за 2 минуты</h1>
-                        <p>Любой принт, текст или фото на твоей футболке. Печать в день заказа, доставка по Узбекистану.</p>
-                        <a class="pl-hero-cta" href="{{ $constructorUrl }}">Открыть конструктор →</a>
+                        <span class="pl-hero-badge">{{ __('site.home_discount_badge') }}</span>
+                        <h1>{!! __('site.home_hero_title') !!}</h1>
+                        <p>{{ __('site.home_hero_text') }}</p>
+                        <a class="pl-hero-cta" href="{{ $constructorUrl }}">{{ __('site.home_hero_cta') }}</a>
                     </div>
                     <div class="pl-hero-shirt">
                         <img src="/mockups/tshirts/white-front.png" alt="" style="width:100%;height:100%;object-fit:contain">
@@ -94,17 +94,17 @@
                 <div class="pl-hero-side">
                     <a href="{{ $activeProductCategories->has('t-shirts') ? $categoryUrl('t-shirts') : route('catalog.index') }}" class="pl-hero-card red">
                         <div>
-                            <h3>Парные<br>футболки</h3>
-                            <p>Для двоих от 1290 UZS</p>
+                            <h3>{!! __('site.home_couple_title') !!}</h3>
+                            <p>{{ __('site.home_couple_text') }}</p>
                         </div>
-                        <div class="pl-hero-card-foot">Смотреть →</div>
+                        <div class="pl-hero-card-foot">{{ __('site.home_view_cta') }}</div>
                     </a>
                     <a href="{{ $activeProductCategories->has('hoodies') ? $categoryUrl('hoodies') : route('catalog.index') }}" class="pl-hero-card dark">
                         <div>
-                            <h3>Худи<br>премиум</h3>
-                            <p>Плотная ткань 320 г/м²</p>
+                            <h3>{!! __('site.home_hoodie_title') !!}</h3>
+                            <p>{{ __('site.home_hoodie_text') }}</p>
                         </div>
-                        <div class="pl-hero-card-foot">Каталог →</div>
+                        <div class="pl-hero-card-foot">{{ __('site.home_catalog_cta') }}</div>
                     </a>
                 </div>
             </div>
@@ -112,8 +112,8 @@
 
         <section class="pl-container pl-section">
             <div class="pl-section-head">
-                <h2>Каталог <em>товаров</em></h2>
-                <a class="pl-link" href="{{ route('catalog.index') }}">Все категории →</a>
+                <h2>{!! __('site.home_catalog_heading') !!}</h2>
+                <a class="pl-link" href="{{ route('catalog.index') }}">{{ __('site.home_all_categories') }}</a>
             </div>
             <div class="pl-cats">
                 @forelse ($productCategories as $category)
@@ -124,12 +124,12 @@
                                 <path d="M155 50 Q200 90 245 50 Q230 75 200 75 Q170 75 155 50 Z" fill="rgba(0,0,0,0.08)"/>
                             </svg>
                         </div>
-                        <div class="pl-cat-name">{{ $category->name }}</div>
-                        <div class="pl-cat-from">{{ $category->products_count }} товаров</div>
+                        <div class="pl-cat-name">{{ $category->localizedName() }}</div>
+                        <div class="pl-cat-from">{{ __('site.home_products_count', ['count' => $category->products_count]) }}</div>
                     </a>
                 @empty
                     <div class="rounded-lg border border-dashed border-pl-gray-300 bg-white p-6 text-sm text-pl-gray-500">
-                        Категории товаров пока не добавлены.
+                        {{ __('site.home_no_categories') }}
                     </div>
                 @endforelse
             </div>
@@ -137,8 +137,8 @@
 
         <section id="products" class="pl-container pl-section">
             <div class="pl-section-head">
-                <h2>ТОП <em>продаж</em></h2>
-                <a class="pl-link" href="{{ route('catalog.index') }}">Все хиты →</a>
+                <h2>{!! __('site.home_top_sales') !!}</h2>
+                <a class="pl-link" href="{{ route('catalog.index') }}">{{ __('site.home_all_hits') }}</a>
             </div>
             <div class="pl-grid">
                 @forelse ($products as $product)
@@ -148,30 +148,29 @@
                             <div class="pl-card-tags">
                                 <span class="pl-card-tag new">new</span>
                             </div>
-                            <span class="pl-card-fav" aria-label="В избранное">♡</span>
+                            <span class="pl-card-fav" aria-label="{{ __('site.header_favorites') }}">♡</span>
                             @if ($variant)
-                                <img src="{{ $variant->mockup_front_url }}" alt="{{ $product->name }}" style="width:100%;height:100%;object-fit:contain" loading="lazy">
+                                <img src="{{ $variant->mockup_front_url }}" alt="{{ $product->localizedName() }}" style="width:100%;height:100%;object-fit:contain" loading="lazy">
                             @else
-                                <div class="rounded-lg border border-dashed border-pl-gray-300 bg-white p-6 text-sm text-pl-gray-500">Нет изображения</div>
+                                <div class="rounded-lg border border-dashed border-pl-gray-300 bg-white p-6 text-sm text-pl-gray-500">{{ __('site.home_no_image') }}</div>
                             @endif
                         </div>
                         <div class="pl-card-body">
-                            <div class="pl-card-name">{{ $product->name }}</div>
-                            <div class="pl-card-rating"><span class="pl-stars">★★★★★</span><span>4.9 · 1200+ продано</span></div>
+                            <div class="pl-card-name">{{ $product->localizedName() }}</div>
+                            <div class="pl-card-rating"><span class="pl-stars">★★★★★</span><span>{{ __('site.home_sold_count') }}</span></div>
                             <div class="pl-card-price-row">
                                 <span class="pl-card-price">{{ number_format($product->base_price, 0, '.', ' ') }} UZS</span>
                             </div>
                             <div class="pl-card-colors">
-                                <span class="pl-card-color" style="background:#ffffff"></span>
-                                <span class="pl-card-color" style="background:#1a1a1a"></span>
-                                <span class="pl-card-color" style="background:#1f3a8a"></span>
-                                <span class="pl-card-color" style="background:#e9789e"></span>
+                                @foreach ($product->variants->pluck('color')->filter()->unique()->take(4) as $color)
+                                    <span class="pl-card-color" style="background:{{ $color }}"></span>
+                                @endforeach
                             </div>
                         </div>
                     </a>
                 @empty
                     <div class="rounded-lg border border-dashed border-pl-gray-300 bg-white p-6 text-sm text-pl-gray-500">
-                        Товары пока не добавлены.
+                        {{ __('site.catalog_no_products') }}
                     </div>
                 @endforelse
             </div>
@@ -181,22 +180,22 @@
             <div class="pl-promo">
                 <div class="pl-promo-icon">✦</div>
                 <div class="pl-promo-text">
-                    <h3>Создай уникальный принт прямо сейчас</h3>
-                    <p>Загрузи фото, добавь текст или выбери из готовых дизайнов. Печать от 1 шт.</p>
+                    <h3>{{ __('site.home_promo_title') }}</h3>
+                    <p>{{ __('site.home_promo_text') }}</p>
                 </div>
-                <a class="pl-promo-cta" href="{{ $constructorUrl }}">В конструктор →</a>
+                <a class="pl-promo-cta" href="{{ $constructorUrl }}">{{ __('site.home_promo_cta') }}</a>
             </div>
         </section>
 
         <section id="prints" class="pl-container pl-section">
             <div class="pl-section-head">
-                <h2>Популярные <em>принты</em></h2>
-                <a class="pl-link" href="{{ route('catalog.index') }}#prints">Все принты →</a>
+                <h2>{!! __('site.home_popular_prints') !!}</h2>
+                <a class="pl-link" href="{{ route('catalog.index') }}#prints">{{ __('site.catalog_all_prints') }}</a>
             </div>
             <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
-                <button class="pl-c-tag active">Все</button>
+                <button class="pl-c-tag active">{{ __('site.catalog_all') }}</button>
                 @foreach ($printCategories as $category)
-                    <a class="pl-c-tag" href="{{ $printCategoryUrl($category->slug) }}">{{ $category->name }}</a>
+                    <a class="pl-c-tag" href="{{ $printCategoryUrl($category->slug) }}">{{ $category->localizedName() }}</a>
                 @endforeach
             </div>
             <div class="pl-prints">
@@ -207,7 +206,7 @@
                     </a>
                 @empty
                     <div class="rounded-lg border border-dashed border-pl-gray-300 bg-white p-6 text-sm text-pl-gray-500">
-                        Готовые принты пока не добавлены.
+                        {{ __('site.catalog_no_prints') }}
                     </div>
                 @endforelse
             </div>
@@ -215,7 +214,7 @@
 
         <section id="benefits" class="pl-container pl-section">
             <div class="grid gap-3 md:grid-cols-4">
-                @foreach ([['🚚','Быстрая доставка','По Ташкенту и регионам'], ['🖨','Печать от 1 шт.','Без минимального тиража'], ['🛡','Гарантия качества','Проверяем макет перед печатью'], ['✦','5000+ дизайнов','Мемы, игры, аниме и спорт']] as $benefit)
+                @foreach ([['🚚', __('site.benefit_delivery_title'), __('site.benefit_delivery_text')], ['🖨', __('site.benefit_print_title'), __('site.benefit_print_text')], ['🛡', __('site.benefit_quality_title'), __('site.benefit_quality_text')], ['✦', __('site.benefit_designs_title'), __('site.benefit_designs_text')]] as $benefit)
                     <div class="rounded-lg border border-pl-gray-200 bg-white p-5">
                         <div class="text-2xl">{{ $benefit[0] }}</div>
                         <h3 class="mt-3 text-sm font-extrabold">{{ $benefit[1] }}</h3>
@@ -229,13 +228,13 @@
     <footer id="contacts" class="pl-footer">
         <div class="pl-container">
             <div class="pl-footer-cols">
-                <div><h4>Каталог</h4><ul>@if ($activeProductCategories->has('t-shirts'))<li><a href="{{ $categoryUrl('t-shirts') }}">Футболки</a></li>@endif @if ($activeProductCategories->has('hoodies'))<li><a href="{{ $categoryUrl('hoodies') }}">Худи</a></li>@endif @if ($activeProductCategories->has('sweatshirts'))<li><a href="{{ $categoryUrl('sweatshirts') }}">Свитшоты</a></li>@endif <li><a href="{{ route('catalog.index') }}#prints">Готовые принты</a></li></ul></div>
-                <div><h4>Помощь</h4><ul><li><a href="#benefits">Доставка</a></li><li><a href="#benefits">Оплата</a></li><li><a href="#contacts">Возврат</a></li><li><a href="{{ route('catalog.index') }}">Размеры</a></li></ul></div>
-                <div><h4>Партнёрам</h4><ul><li><a href="#contacts">Опт</a></li><li><a href="#contacts">Мерч</a></li><li><a href="#contacts">Дизайнерам</a></li><li><a href="#contacts">Франшиза</a></li></ul></div>
-                <div><h4>О нас</h4><ul><li><a href="{{ route('home') }}">PrintLab</a></li><li><a href="#contacts">Контакты</a></li><li><a href="#benefits">Производство</a></li><li><a href="{{ route('catalog.index') }}">Отзывы</a></li></ul></div>
+                <div><h4>{{ __('site.nav_catalog') }}</h4><ul>@if ($activeProductCategories->has('t-shirts'))<li><a href="{{ $categoryUrl('t-shirts') }}">{{ $activeProductCategories->get('t-shirts')->localizedName() }}</a></li>@endif @if ($activeProductCategories->has('hoodies'))<li><a href="{{ $categoryUrl('hoodies') }}">{{ $activeProductCategories->get('hoodies')->localizedName() }}</a></li>@endif @if ($activeProductCategories->has('sweatshirts'))<li><a href="{{ $categoryUrl('sweatshirts') }}">{{ $activeProductCategories->get('sweatshirts')->localizedName() }}</a></li>@endif <li><a href="{{ route('catalog.index') }}#prints">{{ __('site.nav_prints') }}</a></li></ul></div>
+                <div><h4>{{ __('site.footer_help') }}</h4><ul><li><a href="#benefits">{{ __('site.topbar_delivery') }}</a></li><li><a href="#benefits">{{ __('site.topbar_payment') }}</a></li><li><a href="#contacts">{{ __('site.footer_return') }}</a></li><li><a href="{{ route('catalog.index') }}">{{ __('site.footer_sizes') }}</a></li></ul></div>
+                <div><h4>{{ __('site.topbar_partners') }}</h4><ul><li><a href="#contacts">{{ __('site.footer_wholesale') }}</a></li><li><a href="#contacts">{{ __('site.footer_merch') }}</a></li><li><a href="#contacts">{{ __('site.footer_designers') }}</a></li><li><a href="#contacts">{{ __('site.footer_franchise') }}</a></li></ul></div>
+                <div><h4>{{ __('site.footer_about') }}</h4><ul><li><a href="{{ route('home') }}">PrintLab</a></li><li><a href="#contacts">{{ __('site.nav_contacts') }}</a></li><li><a href="#benefits">{{ __('site.footer_production') }}</a></li><li><a href="{{ route('catalog.index') }}">{{ __('site.footer_reviews') }}</a></li></ul></div>
                 <div>
-                    <h4>Подписка</h4>
-                    <p style="margin:0 0 12px;color:#8a8a8a">Скидки, новые принты и лимитированные дропы.</p>
+                    <h4>{{ __('site.footer_subscription') }}</h4>
+                    <p style="margin:0 0 12px;color:#8a8a8a">{{ __('site.footer_subscription_text') }}</p>
                     <form class="pl-search" style="height:40px">
                         <input type="email" placeholder="email@example.com">
                         <button>OK</button>
@@ -244,7 +243,7 @@
             </div>
             <div class="pl-footer-bottom">
                 <span>© 2026 PrintLab</span>
-                <span>Футболки, кружки и индивидуальная печать</span>
+                <span>{{ __('site.footer_short_text') }}</span>
             </div>
         </div>
     </footer>

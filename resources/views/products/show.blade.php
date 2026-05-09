@@ -1,6 +1,7 @@
 @php
     $firstVariant = $product->variants->first();
     $variants     = $product->variants;
+    $productName = $product->localizedName();
 
     $colourMap = [
         'white'  => '#ffffff', 'белый'       => '#ffffff',
@@ -33,8 +34,8 @@
 @endphp
 
 <x-layouts.public
-    :title="$product->name . ' — PrintLab'"
-    :description="$product->type->label() . ' ' . $product->name . '. ' . __('site.seo_home_description')"
+    :title="$productName . ' — PrintLab'"
+    :description="$product->type->label() . ' ' . $productName . '. ' . __('site.seo_home_description')"
 >
 
 <main class="mx-auto max-w-6xl px-4 py-8">
@@ -45,7 +46,7 @@
         <span>/</span>
         <a href="{{ route('catalog.index') }}" class="hover:text-zinc-700 transition-colors">{{ __('site.nav_catalog') }}</a>
         <span>/</span>
-        <span class="text-zinc-700">{{ $product->name }}</span>
+        <span class="text-zinc-700">{{ $productName }}</span>
     </nav>
 
     <div class="grid gap-10 lg:grid-cols-2">
@@ -55,7 +56,7 @@
             <div class="relative overflow-hidden rounded-2xl bg-zinc-100 aspect-square">
                 <img id="mainImage"
                      src="{{ $firstVariant->mockup_front_url }}"
-                     alt="{{ $product->name }}"
+                     alt="{{ $productName }}"
                      class="h-full w-full object-contain p-6"
                      style="transition: opacity 0.15s ease">
 
@@ -96,7 +97,7 @@
                 {{ $product->type->label() }}
             </span>
 
-            <h1 class="mt-3 text-3xl font-bold tracking-tight text-zinc-950">{{ $product->name }}</h1>
+            <h1 class="mt-3 text-3xl font-bold tracking-tight text-zinc-950">{{ $productName }}</h1>
 
             <div class="mt-3 flex items-baseline gap-1">
                 <span id="priceDisplay" class="text-2xl font-bold text-zinc-950">
@@ -116,7 +117,7 @@
                     </p>
                     <div class="flex flex-wrap gap-2">
                         @foreach ($colours as $colour)
-                        @php $hex = $colourMap[strtolower($colour)] ?? '#e5e7eb'; @endphp
+                        @php $hex = str_starts_with($colour, '#') ? $colour : ($colourMap[strtolower($colour)] ?? '#e5e7eb'); @endphp
                         <button onclick="selectColour('{{ $colour }}')"
                                 data-colour="{{ $colour }}"
                                 title="{{ $colour }}"
