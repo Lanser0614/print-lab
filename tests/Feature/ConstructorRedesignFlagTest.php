@@ -37,6 +37,40 @@ class ConstructorRedesignFlagTest extends TestCase
         $response->assertSee('v2-tool-tabs', false);
     }
 
+    public function test_constructor_success_route_points_to_new_catalog_home(): void
+    {
+        $product = $this->productWithVariant();
+
+        $response = $this->get('/ru/constructor/'.$product->slug);
+
+        $response->assertOk();
+
+        preg_match(
+            '/\\\\u0022success\\\\u0022:\\\\u0022(?<url>.*?)\\\\u0022/',
+            $response->getContent(),
+            $matches,
+        );
+
+        $successUrl = str_replace(['\\\\/', '\\/'], '/', $matches['url']);
+
+        $this->assertSame('http://localhost:8000/ru', $successUrl);
+        $this->assertNotSame('http://localhost:8000/ru/catalog', $successUrl);
+    }
+
+    public function test_constructor_persists_side_drafts_when_switching_sides(): void
+    {
+        $product = $this->productWithVariant();
+
+        $this->get('/ru/constructor/'.$product->slug)
+            ->assertOk()
+            ->assertSee("function constructorDraftKey(side = constructorConfig.printArea?.side || 'front')", false)
+            ->assertSee('function saveCurrentSideDraft()', false)
+            ->assertSee('function restoreCurrentSideDraft()', false)
+            ->assertSee('saveCurrentSideDraft();', false)
+            ->assertSee('restoreCurrentSideDraft();', false)
+            ->assertDontSee("constructorConfig.variant?.id || 'variant'", false);
+    }
+
     private function productWithVariant(): Product
     {
         $product = Product::factory()->create();
