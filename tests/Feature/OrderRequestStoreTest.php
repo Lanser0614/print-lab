@@ -111,6 +111,93 @@ class OrderRequestStoreTest extends TestCase
         ])->assertUnprocessable();
     }
 
+    public function test_it_creates_order_request_without_design_layers(): void
+    {
+        Storage::fake('public');
+
+        $product = Product::factory()->create();
+        $variant = ProductVariant::factory()->for($product)->create();
+        ProductPrintArea::factory()->for($variant)->create(['side' => 'front']);
+
+        $this->postJson(route('order-requests.store'), [
+            'customer_name' => 'Doniyor',
+            'customer_phone' => '+998901234567',
+            'product_id' => $product->id,
+            'variant_id' => $variant->id,
+            'quantity' => 1,
+            'side' => 'front',
+            'canvas_json' => [
+                'layers' => [],
+                'print_area' => [
+                    'x' => 0.32,
+                    'y' => 0.27,
+                    'width' => 0.36,
+                    'height' => 0.42,
+                    'unit' => 'ratio',
+                ],
+            ],
+            'preview_image' => $this->fakeBase64Png(),
+            'print_image' => $this->fakeBase64Png(),
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.status', OrderRequestStatus::New->value);
+
+        $this->assertSame(1, OrderRequest::query()->count());
+        $this->assertSame(1, Design::query()->count());
+        $this->assertSame(0, DesignTextLayer::query()->count());
+    }
+
+    public function test_it_creates_order_request_with_front_and_back_designs(): void
+    {
+        Storage::fake('public');
+
+        $product = Product::factory()->create();
+        $variant = ProductVariant::factory()->for($product)->create();
+        ProductPrintArea::factory()->for($variant)->create(['side' => 'front']);
+        ProductPrintArea::factory()->for($variant)->create(['side' => 'back']);
+
+        $this->postJson(route('order-requests.store'), [
+            'customer_name' => 'Doniyor',
+            'customer_phone' => '+998901234567',
+            'product_id' => $product->id,
+            'variant_id' => $variant->id,
+            'quantity' => 1,
+            'designs' => [
+                [
+                    'side' => 'front',
+                    'canvas_json' => [
+                        'layers' => [['id' => 'front-text', 'type' => 'text', 'text' => 'Front']],
+                        'print_area' => ['x' => 0.32, 'y' => 0.27, 'width' => 0.36, 'height' => 0.42, 'unit' => 'ratio'],
+                    ],
+                    'preview_image' => $this->fakeBase64Png(),
+                    'print_image' => $this->fakeBase64Png(),
+                    'assets' => [],
+                ],
+                [
+                    'side' => 'back',
+                    'canvas_json' => [
+                        'layers' => [['id' => 'back-text', 'type' => 'text', 'text' => 'Back']],
+                        'print_area' => ['x' => 0.30, 'y' => 0.24, 'width' => 0.40, 'height' => 0.46, 'unit' => 'ratio'],
+                    ],
+                    'preview_image' => $this->fakeBase64Png(),
+                    'print_image' => $this->fakeBase64Png(),
+                    'assets' => [
+                        [
+                            'layer_id' => 'back-image',
+                            'file_name' => 'back.png',
+                            'data' => $this->fakeBase64Png(),
+                        ],
+                    ],
+                ],
+            ],
+        ])->assertCreated();
+
+        $this->assertSame(1, OrderRequest::query()->count());
+        $this->assertSame(['back', 'front'], Design::query()->pluck('side')->sort()->values()->all());
+        $this->assertSame(2, DesignTextLayer::query()->count());
+        $this->assertSame(1, Design::query()->where('side', 'back')->firstOrFail()->assets()->count());
+    }
+
     public function test_html_order_request_redirects_to_localized_home_catalog(): void
     {
         Storage::fake('public');

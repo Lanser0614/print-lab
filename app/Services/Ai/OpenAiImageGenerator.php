@@ -47,7 +47,7 @@ class OpenAiImageGenerator implements ImageGenerator
         }
 
         try {
-            $response = Http::withToken((string) config('services.openai.api_key'))
+            $response = Http::withToken(config('services.openai.api_key'))
                 ->asJson()
                 ->throw()
                 ->connectTimeout(10)

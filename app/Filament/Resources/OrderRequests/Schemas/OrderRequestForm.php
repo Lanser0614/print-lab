@@ -58,25 +58,31 @@ class OrderRequestForm
                         Placeholder::make('text_layers')
                             ->label('')
                             ->content(function (OrderRequest $record): HtmlString {
-                                $layers = $record->items->flatMap(fn ($item) => $item->design?->textLayers ?? collect());
+                                $layers = $record->items
+                                    ->flatMap(fn ($item) => $item->designs)
+                                    ->flatMap(fn ($design) => $design->textLayers->map(fn ($layer) => [
+                                        'design' => $design,
+                                        'layer' => $layer,
+                                    ]));
 
                                 if ($layers->isEmpty()) {
                                     return new HtmlString('<div class="text-sm text-gray-500">Нет текстовых слоёв.</div>');
                                 }
 
-                                $rows = $layers->map(fn ($layer): string => sprintf(
-                                    '<tr><td>%s</td><td>%s</td><td>%s</td><td><code>%s</code></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>',
-                                    e($layer->text),
-                                    e($layer->font_family ?? '-'),
-                                    e((string) ($layer->font_size ?? '-')),
-                                    e($layer->color ?? '-'),
-                                    e((string) ($layer->x ?? '-')),
-                                    e((string) ($layer->y ?? '-')),
-                                    e((string) ($layer->scale ?? '-')),
-                                    e((string) ($layer->rotation ?? '-')),
+                                $rows = $layers->map(fn (array $row): string => sprintf(
+                                    '<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td><code>%s</code></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>',
+                                    e($row['design']->side === 'back' ? 'Сзади' : 'Спереди'),
+                                    e($row['layer']->text),
+                                    e($row['layer']->font_family ?? '-'),
+                                    e((string) ($row['layer']->font_size ?? '-')),
+                                    e($row['layer']->color ?? '-'),
+                                    e((string) ($row['layer']->x ?? '-')),
+                                    e((string) ($row['layer']->y ?? '-')),
+                                    e((string) ($row['layer']->scale ?? '-')),
+                                    e((string) ($row['layer']->rotation ?? '-')),
                                 ))->implode('');
 
-                                return new HtmlString('<div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr><th class="text-left">Text</th><th class="text-left">Font</th><th class="text-left">Size</th><th class="text-left">Color</th><th class="text-left">X</th><th class="text-left">Y</th><th class="text-left">Scale</th><th class="text-left">Rotation</th></tr></thead><tbody>'.$rows.'</tbody></table></div>');
+                                return new HtmlString('<div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr><th class="text-left">Сторона</th><th class="text-left">Text</th><th class="text-left">Font</th><th class="text-left">Size</th><th class="text-left">Color</th><th class="text-left">X</th><th class="text-left">Y</th><th class="text-left">Scale</th><th class="text-left">Rotation</th></tr></thead><tbody>'.$rows.'</tbody></table></div>');
                             }),
                     ]),
                 Section::make('Canvas JSON')
@@ -85,9 +91,14 @@ class OrderRequestForm
                         Placeholder::make('canvas_json')
                             ->label('')
                             ->content(function (OrderRequest $record): HtmlString {
-                                $design = $record->items->first()?->design;
+                                $designs = $record->items
+                                    ->flatMap(fn ($item) => $item->designs)
+                                    ->mapWithKeys(fn ($design) => [
+                                        $design->side => $design->canvas_json ?? [],
+                                    ])
+                                    ->all();
 
-                                return new HtmlString('<pre class="overflow-auto rounded bg-gray-950 p-4 text-xs text-gray-100">'.e(json_encode($design?->canvas_json ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)).'</pre>');
+                                return new HtmlString('<pre class="overflow-auto rounded bg-gray-950 p-4 text-xs text-gray-100">'.e(json_encode($designs, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)).'</pre>');
                             }),
                     ]),
             ]);

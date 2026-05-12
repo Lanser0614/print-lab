@@ -182,7 +182,9 @@ return [
     'constructor_redone' => '↪ Qaytarildi',
     'constructor_saved' => '👕 Saqlandi!',
     'constructor_print_saved' => '🖨 Print saqlandi!',
-    'constructor_no_layers' => "⚠️ Qatlamlar yo'q",
+    'constructor_no_layers' => "⚠️ Buyurtma berishdan oldin kamida bitta qatlam qo'shing.",
+    'constructor_images_loading' => "⏳ Rasmlar hali yuklanmoqda, bir necha soniyadan keyin urinib ko'ring.",
+    'constructor_draft_quota_warning' => "⚠️ Qoralamani saqlab bo'lmadi: rasmlar juda katta.",
     'constructor_layers_saved' => '📦 :count qatlam saqlandi',
 
     // ── Buyurtma formasi ─────────────────────────────────────

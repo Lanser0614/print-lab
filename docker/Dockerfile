@@ -16,6 +16,11 @@ RUN apt-get update \
     && docker-php-ext-install intl pdo_mysql zip bcmath pcntl \
     && pecl install redis \
     && docker-php-ext-enable redis \
+    && { \
+        echo 'post_max_size=64M'; \
+        echo 'upload_max_filesize=64M'; \
+        echo 'memory_limit=256M'; \
+    } > /usr/local/etc/php/conf.d/zz-printlab-limits.ini \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

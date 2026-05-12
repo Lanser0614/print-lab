@@ -182,7 +182,9 @@ return [
     'constructor_redone' => '↪ Повторено',
     'constructor_saved' => '👕 Сохранено!',
     'constructor_print_saved' => '🖨 Принт сохранён!',
-    'constructor_no_layers' => '⚠️ Нет слоёв',
+    'constructor_no_layers' => '⚠️ Добавьте хотя бы один слой, прежде чем оформлять заказ.',
+    'constructor_images_loading' => '⏳ Изображения ещё загружаются, попробуйте через пару секунд.',
+    'constructor_draft_quota_warning' => '⚠️ Не получилось сохранить черновик: слишком большие изображения.',
     'constructor_layers_saved' => '📦 :count слоёв сохранено',
 
     // ── Форма заказа ─────────────────────────────────────────

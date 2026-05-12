@@ -32,6 +32,14 @@
             'height' => $printArea->height,
             'unit' => 'ratio',
         ],
+        'printAreas' => $variant->printAreas->mapWithKeys(fn ($area) => [$area->side => [
+            'side' => $area->side,
+            'x' => $area->x,
+            'y' => $area->y,
+            'width' => $area->width,
+            'height' => $area->height,
+            'unit' => 'ratio',
+        ]])->all(),
         'routes' => [
             'constructor' => route('constructor.show', $product),
             'storeOrderRequest' => route('order-requests.store'),
@@ -752,7 +760,7 @@ input[type=color] { width: 36px; height: 30px; border-radius: 6px; border: 1px s
     </div>
     <div class="order-field">
       <label for="customerPhone">{{ __('site.order_phone') }}</label>
-      <input id="customerPhone" name="customer_phone" type="tel" maxlength="32" required>
+      <input id="customerPhone" name="customer_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="17" placeholder="+998 __ ___ __ __" required>
     </div>
     <div class="order-field">
       <label for="customerComment">{{ __('site.order_comment') }}</label>
@@ -806,15 +814,103 @@ function constructorDraftKey(side = constructorConfig.printArea?.side || 'front'
   ].join(':');
 }
 
-function saveCurrentSideDraft() {
-  try {
-    sessionStorage.setItem(constructorDraftKey(), JSON.stringify({
-      layers: serializeLayers(),
-      selectedId: selectedId ? String(selectedId) : null,
-    }));
-  } catch (error) {
-    // Draft persistence is best-effort; the constructor should keep working if storage is full.
+// IndexedDB-backed draft storage (sessionStorage's ~5MB quota was too small
+// for image data URLs and caused per-side drafts to overwrite each other).
+const DRAFT_DB_NAME = 'printlab_constructor';
+const DRAFT_STORE = 'drafts';
+const DRAFT_DB_VERSION = 1;
+
+let draftDbPromise = null;
+function openDraftDb() {
+  if (draftDbPromise) return draftDbPromise;
+  if (typeof indexedDB === 'undefined') {
+    return Promise.reject(new Error('indexedDB_unavailable'));
   }
+  draftDbPromise = new Promise((resolve, reject) => {
+    let req;
+    try { req = indexedDB.open(DRAFT_DB_NAME, DRAFT_DB_VERSION); }
+    catch (err) { reject(err); return; }
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(DRAFT_STORE)) db.createObjectStore(DRAFT_STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+    req.onblocked = () => reject(new Error('indexedDB_blocked'));
+  }).catch(err => { draftDbPromise = null; throw err; });
+  return draftDbPromise;
+}
+
+async function draftPut(key, value) {
+  const db = await openDraftDb();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(DRAFT_STORE, 'readwrite');
+    tx.objectStore(DRAFT_STORE).put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+}
+
+async function draftGet(key) {
+  const db = await openDraftDb();
+  return await new Promise((resolve, reject) => {
+    const tx = db.transaction(DRAFT_STORE, 'readonly');
+    const r = tx.objectStore(DRAFT_STORE).get(key);
+    r.onsuccess = () => resolve(r.result ?? null);
+    r.onerror = () => reject(r.error);
+  });
+}
+
+async function draftDelete(key) {
+  const db = await openDraftDb();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(DRAFT_STORE, 'readwrite');
+    tx.objectStore(DRAFT_STORE).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+let draftQuotaWarned = false;
+let pendingSavePromise = Promise.resolve();
+function saveCurrentSideDraft() {
+  const key = constructorDraftKey();
+  const payload = {
+    layers: serializeLayers(),
+    selectedId: selectedId ? String(selectedId) : null,
+  };
+
+  pendingSavePromise = pendingSavePromise.then(async () => {
+    try {
+      await draftPut(key, payload);
+      draftQuotaWarned = false;
+      try { sessionStorage.removeItem(key); } catch (_) {}
+    } catch (error) {
+      try {
+        sessionStorage.setItem(key, JSON.stringify(payload));
+        draftQuotaWarned = false;
+      } catch (sessionError) {
+        if (!draftQuotaWarned) {
+          draftQuotaWarned = true;
+          try { showToast(@json(__('site.constructor_draft_quota_warning'))); } catch (_) {}
+          console.warn('Constructor draft save failed', error, sessionError);
+        }
+      }
+    }
+  });
+
+  return pendingSavePromise;
+}
+
+let draftSaveTimer = null;
+function scheduleCurrentSideDraftSave() {
+  if (draftSaveTimer) clearTimeout(draftSaveTimer);
+  draftSaveTimer = setTimeout(() => {
+    saveCurrentSideDraft().catch(error => {
+      console.warn('Constructor draft autosave failed', error);
+    });
+  }, 300);
 }
 
 function layerFromDraft(raw) {
@@ -860,14 +956,8 @@ function layerFromDraft(raw) {
   };
 }
 
-function restoreCurrentSideDraft() {
-  let draft;
-  try {
-    draft = JSON.parse(sessionStorage.getItem(constructorDraftKey()) || 'null');
-  } catch (error) {
-    return;
-  }
-
+async function restoreCurrentSideDraft() {
+  const draft = await readConstructorDraft();
   if (!Array.isArray(draft?.layers) || draft.layers.length === 0) return;
 
   layers = draft.layers.map(layerFromDraft);
@@ -877,19 +967,63 @@ function restoreCurrentSideDraft() {
     return Number.isFinite(id) ? Math.max(max, id + 1) : max;
   }, nextId);
 
-  layers.forEach(layer => {
-    if (layer.type !== 'image' || !layer.src) return;
-
-    const img = new Image();
-    img.onload = () => { layer.img = img; renderAll(); };
-    img.src = layer.src;
-  });
-
+  hydrateLayerImages(layers, () => renderAll());
   refreshUI();
 }
 
+async function readConstructorDraft(side = constructorConfig.printArea?.side || 'front') {
+  const key = constructorDraftKey(side);
+  let draft = null;
+
+  try {
+    draft = await draftGet(key);
+  } catch (_) {
+    // IndexedDB failed; fall through to sessionStorage fallback below.
+  }
+
+  if (!draft) {
+    try {
+      const legacy = sessionStorage.getItem(key);
+      if (legacy) draft = JSON.parse(legacy);
+    } catch (_) {}
+  }
+
+  return draft;
+}
+
+function hydrateLayerImages(layerList, onLoad = null) {
+  const pending = [];
+
+  layerList.forEach(layer => {
+    if (layer.type !== 'image' || !layer.src) return;
+    if (layer.img) return;
+
+    const img = new Image();
+    layer.imgReady = new Promise((resolve) => {
+      img.onload = () => { layer.img = img; if (onLoad) onLoad(); resolve(true); };
+      img.onerror = () => { resolve(false); };
+    });
+    pending.push(layer.imgReady);
+    img.src = layer.src;
+  });
+
+  return Promise.all(pending);
+}
+
+async function waitForLayerImages() {
+  const pending = layers
+    .filter(layer => layer.type === 'image' && layer.imgReady && !layer.img)
+    .map(layer => layer.imgReady);
+  if (pending.length === 0) return;
+  await Promise.all(pending);
+}
+
 function clearConstructorDrafts() {
-  ['front', 'back'].forEach(side => sessionStorage.removeItem(constructorDraftKey(side)));
+  ['front', 'back'].forEach(side => {
+    const key = constructorDraftKey(side);
+    try { sessionStorage.removeItem(key); } catch (_) {}
+    draftDelete(key).catch(() => {});
+  });
 }
 
 // Print zone as fraction of canvas
@@ -932,16 +1066,18 @@ function loadProductMockup() {
   img.src = url;
 }
 
-function changeConstructorVariant(variantId) {
-  saveCurrentSideDraft();
+async function changeConstructorVariant(variantId) {
+  // IndexedDB writes are async; wait for the draft to flush before unloading
+  // the page, otherwise the in-flight write is cancelled and the side's design is lost.
+  await saveCurrentSideDraft();
   const url = new URL(constructorConfig.routes.constructor, window.location.origin);
   url.searchParams.set('variant', variantId);
   url.searchParams.set('side', document.getElementById('sideSelect').value || 'front');
   window.location.href = url.toString();
 }
 
-function changeConstructorSide(side) {
-  saveCurrentSideDraft();
+async function changeConstructorSide(side) {
+  await saveCurrentSideDraft();
   const url = new URL(constructorConfig.routes.constructor, window.location.origin);
   url.searchParams.set('variant', document.getElementById('variantSelect').value || constructorConfig.variant.id);
   url.searchParams.set('side', side);
@@ -1349,6 +1485,7 @@ function addImage(evt) {
       layers.push(layer);
       selectedId = layer.id;
       refreshUI();
+      scheduleCurrentSideDraftSave();
       showToast(@json(__('site.constructor_image_added')));
     };
     img.src = e.target.result;
@@ -1375,6 +1512,7 @@ function addText() {
   layers.push(layer);
   selectedId = layer.id;
   refreshUI();
+  scheduleCurrentSideDraftSave();
   document.getElementById('textInput').value = layer.text;
   showToast(@json(__('site.constructor_text_added')));
 }
@@ -1395,6 +1533,7 @@ function addShape(type) {
   layers.push(layer);
   selectedId = layer.id;
   refreshUI();
+  scheduleCurrentSideDraftSave();
 }
 
 // ============================================================
@@ -1469,6 +1608,7 @@ function updateSelectedText() {
   document.getElementById('textColorHex').value = sel.color;
   updateLayersList();
   renderAll();
+  scheduleCurrentSideDraftSave();
 }
 
 function syncTxtColor() {
@@ -1486,6 +1626,7 @@ function toggleBold() {
   document.getElementById('boldBtn').style.fontWeight = sel.bold ? '800' : '400';
   document.getElementById('boldBtn').style.borderColor = sel.bold ? 'var(--accent)' : '';
   renderAll();
+  scheduleCurrentSideDraftSave();
 }
 
 function updateTransform(prop, val) {
@@ -1493,6 +1634,7 @@ function updateTransform(prop, val) {
   if (!sel) return;
   sel[prop === 'blend' ? 'blend' : prop] = val;
   renderAll();
+  scheduleCurrentSideDraftSave();
 }
 
 function deleteLayer(id, e) {
@@ -1501,6 +1643,7 @@ function deleteLayer(id, e) {
   layers = layers.filter(l => l.id !== id);
   if (selectedId === id) selectedId = layers.length ? layers[layers.length-1].id : null;
   refreshUI();
+  scheduleCurrentSideDraftSave();
 }
 
 // DRAG & ROTATE INTERACTIONS
@@ -1581,8 +1724,19 @@ canvas.addEventListener('mousemove', e => {
   }
 });
 
-canvas.addEventListener('mouseup', () => { isDragging = false; isRotating = false; canvas.style.cursor = 'default'; });
-canvas.addEventListener('mouseleave', () => { isDragging = false; isRotating = false; });
+canvas.addEventListener('mouseup', () => {
+  const changed = isDragging || isRotating;
+  isDragging = false;
+  isRotating = false;
+  canvas.style.cursor = 'default';
+  if (changed) scheduleCurrentSideDraftSave();
+});
+canvas.addEventListener('mouseleave', () => {
+  const changed = isDragging || isRotating;
+  isDragging = false;
+  isRotating = false;
+  if (changed) scheduleCurrentSideDraftSave();
+});
 
 // Touch
 canvas.addEventListener('touchstart', e => {
@@ -1602,7 +1756,11 @@ canvas.addEventListener('touchmove', e => {
   const sel = layers.find(l => l.id === selectedId);
   if (sel) { sel.x = x - dragOffX; sel.y = y - dragOffY; renderAll(); }
 }, {passive:false});
-canvas.addEventListener('touchend', () => { isDragging = false; });
+canvas.addEventListener('touchend', () => {
+  const changed = isDragging;
+  isDragging = false;
+  if (changed) scheduleCurrentSideDraftSave();
+});
 
 // ============================================================
 // HISTORY
@@ -1698,17 +1856,47 @@ function drawLayerToContext(tc, layer, offsetX, offsetY) {
   tc.restore();
 }
 
+function getMockupUrlForSide(side) {
+  return side === 'back'
+    ? (constructorConfig.variant?.mockup_back_url || constructorConfig.variant?.mockup_front_url)
+    : constructorConfig.variant?.mockup_front_url;
+}
+
+const mockupImageCache = {};
+function loadMockupForSide(side) {
+  const url = getMockupUrlForSide(side);
+  if (!url) return Promise.resolve(null);
+  if (mockupImageCache[url]) return mockupImageCache[url];
+
+  mockupImageCache[url] = new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+
+  return mockupImageCache[url];
+}
+
 function getPrintOnlyDataUrl() {
+  return getPrintOnlyDataUrlForLayers(layers);
+}
+
+function getPrintOnlyDataUrlForLayers(layerList) {
   const pz = getPZ();
   const tmp = document.createElement('canvas');
   tmp.width = pz.w; tmp.height = pz.h;
   const tc = tmp.getContext('2d');
-  layers.forEach(layer => drawLayerToContext(tc, layer, pz.x, pz.y));
+  layerList.forEach(layer => drawLayerToContext(tc, layer, pz.x, pz.y));
   return tmp.toDataURL('image/png');
 }
 
-function serializeLayers() {
-  return layers.map(layer => {
+function serializeLayers(includeImageSrc = true) {
+  return serializeLayerList(layers, includeImageSrc);
+}
+
+function serializeLayerList(layerList, includeImageSrc = true) {
+  return layerList.map(layer => {
     const base = {
       id: String(layer.id),
       type: layer.type,
@@ -1733,13 +1921,16 @@ function serializeLayers() {
     }
 
     if (layer.type === 'image') {
-      return {
+      const imageLayer = {
         ...base,
-        src: layer.src || '',
         originalFileName: layer.originalFileName || layer.name,
         width: layer.w,
         height: layer.h,
       };
+
+      if (includeImageSrc) imageLayer.src = layer.src || '';
+
+      return imageLayer;
     }
 
     return {
@@ -1753,13 +1944,90 @@ function serializeLayers() {
 }
 
 function collectAssets() {
-  return layers
+  return collectLayerAssets(layers);
+}
+
+function collectLayerAssets(layerList) {
+  return layerList
     .filter(layer => layer.type === 'image' && layer.src && layer.src.startsWith('data:'))
     .map(layer => ({
       layer_id: String(layer.id),
       file_name: layer.originalFileName || layer.name || 'image.png',
       data: layer.src,
     }));
+}
+
+async function getLayersForOrderSide(side) {
+  const currentSide = constructorConfig.printArea?.side || 'front';
+  if (side === currentSide) {
+    await waitForLayerImages();
+    return layers;
+  }
+
+  const draft = await readConstructorDraft(side);
+  if (!Array.isArray(draft?.layers) || draft.layers.length === 0) return [];
+
+  const sideLayers = draft.layers.map(layerFromDraft);
+  await hydrateLayerImages(sideLayers);
+  return sideLayers;
+}
+
+function getPrintAreaForSide(side) {
+  return constructorConfig.printAreas?.[side] || {
+    ...(constructorConfig.printArea || {}),
+    side,
+  };
+}
+
+async function getFullDataUrlForSideLayers(side, layerList) {
+  const tmp = document.createElement('canvas');
+  tmp.width = canvas.width;
+  tmp.height = canvas.height;
+  const tc = tmp.getContext('2d');
+  const mockup = await loadMockupForSide(side);
+
+  if (mockup) {
+    tc.drawImage(mockup, 0, 0, tmp.width, tmp.height);
+  }
+
+  layerList.forEach(layer => drawLayerToContext(tc, layer, 0, 0));
+
+  return tmp.toDataURL('image/png');
+}
+
+async function buildOrderDesigns() {
+  await saveCurrentSideDraft();
+
+  const currentSide = constructorConfig.printArea?.side || 'front';
+  const sides = ['front', 'back'];
+  const sideLayers = {};
+
+  for (const side of sides) {
+    sideLayers[side] = await getLayersForOrderSide(side);
+  }
+
+  let designSides = sides.filter(side => sideLayers[side].length > 0);
+  if (designSides.length === 0) designSides = [currentSide];
+
+  const designs = [];
+  for (const side of designSides) {
+    const layerList = sideLayers[side] || [];
+    const missingImage = layerList.find(layer => layer.type === 'image' && !layer.img);
+    if (missingImage) throw new Error('images_loading');
+
+    designs.push({
+      side,
+      canvas_json: {
+        layers: serializeLayerList(layerList, false),
+        print_area: getPrintAreaForSide(side),
+      },
+      preview_image: await getFullDataUrlForSideLayers(side, layerList),
+      print_image: getPrintOnlyDataUrlForLayers(layerList),
+      assets: collectLayerAssets(layerList),
+    });
+  }
+
+  return designs;
 }
 
 function openOrderDialog() {
@@ -1777,6 +2045,16 @@ async function submitOrderRequest(evt) {
   const err = document.getElementById('orderError');
   err.classList.remove('show');
 
+  let designs;
+  try {
+    designs = await buildOrderDesigns();
+  } catch (error) {
+    if (error?.message !== 'images_loading') console.error('Order design build failed', error);
+    err.textContent = @json(__('site.constructor_images_loading'));
+    err.classList.add('show');
+    return;
+  }
+
   const payload = {
     customer_name: document.getElementById('customerName').value,
     customer_phone: document.getElementById('customerPhone').value,
@@ -1784,14 +2062,7 @@ async function submitOrderRequest(evt) {
     product_id: constructorConfig.product.id,
     variant_id: constructorConfig.variant.id,
     quantity: 1,
-    side: constructorConfig.printArea.side || 'front',
-    canvas_json: {
-      layers: serializeLayers(),
-      print_area: constructorConfig.printArea,
-    },
-    preview_image: getFullDataUrl(),
-    print_image: getPrintOnlyDataUrl(),
-    assets: collectAssets(),
+    designs,
   };
 
   const response = await fetch(constructorConfig.routes.storeOrderRequest, {
@@ -1805,7 +2076,16 @@ async function submitOrderRequest(evt) {
   });
 
   if (!response.ok) {
-    err.textContent = '{{ __('site.order_error') }}';
+    let message = '{{ __('site.order_error') }}';
+    try {
+      const errorPayload = await response.json();
+      const firstError = Object.values(errorPayload.errors || {}).flat()[0];
+      if (firstError) message = firstError;
+      console.error('Order request failed', response.status, errorPayload);
+    } catch (error) {
+      console.error('Order request failed', response.status, error);
+    }
+    err.textContent = message;
     err.classList.add('show');
     return;
   }
@@ -1915,9 +2195,38 @@ canvas.addEventListener('touchend', () => {
 // ============================================================
 // INIT
 // ============================================================
+function formatUzPhone(value) {
+  let digits = String(value || '').replace(/\D/g, '');
+  if (digits.startsWith('998')) digits = digits.slice(3);
+  if (digits.startsWith('8')) digits = digits.slice(1);
+  digits = digits.slice(0, 9);
+
+  let result = '+998';
+  if (digits.length > 0) result += ' ' + digits.slice(0, 2);
+  if (digits.length > 2) result += ' ' + digits.slice(2, 5);
+  if (digits.length > 5) result += ' ' + digits.slice(5, 7);
+  if (digits.length > 7) result += ' ' + digits.slice(7, 9);
+  return result;
+}
+
+function setupPhoneMask() {
+  const input = document.getElementById('customerPhone');
+  if (!input) return;
+
+  input.addEventListener('focus', () => {
+    if (!input.value) input.value = '+998 ';
+  });
+  input.addEventListener('input', () => {
+    input.value = formatUzPhone(input.value);
+  });
+}
+
+setupPhoneMask();
 document.getElementById('orderForm').addEventListener('submit', submitOrderRequest);
 loadProductMockup();
 resizeCanvas();
+// restoreCurrentSideDraft is async (IndexedDB-backed); fire-and-forget is fine
+// because submit awaits image loading before sending the order.
 restoreCurrentSideDraft();
 </script>
 </body>

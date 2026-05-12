@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrderRequestItem extends Model
@@ -34,5 +35,10 @@ class OrderRequestItem extends Model
     public function design(): HasOne
     {
         return $this->hasOne(Design::class);
+    }
+
+    public function designs(): HasMany
+    {
+        return $this->hasMany(Design::class);
     }
 }

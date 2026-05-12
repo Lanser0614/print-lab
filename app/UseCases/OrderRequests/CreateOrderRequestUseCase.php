@@ -23,10 +23,12 @@ final readonly class CreateOrderRequestUseCase
                 ->where('product_id', $product->id)
                 ->findOrFail($data->variantId);
 
-            ProductPrintArea::query()
-                ->where('product_variant_id', $variant->id)
-                ->where('side', $data->side)
-                ->firstOrFail();
+            foreach ($data->designs as $designData) {
+                ProductPrintArea::query()
+                    ->where('product_variant_id', $variant->id)
+                    ->where('side', $designData['side'])
+                    ->firstOrFail();
+            }
 
             $orderRequest = OrderRequest::query()->create([
                 'user_id' => $data->userId,
@@ -53,17 +55,19 @@ final readonly class CreateOrderRequestUseCase
                 'total_price' => $unitPrice * $data->quantity,
             ]);
 
-            $design = $item->design()->create([
-                'side' => $data->side,
-                'canvas_json' => $data->canvasJson,
-                'preview_image_path' => $this->storeDataUrl($data->previewImage, 'order-requests/previews'),
-                'print_image_path' => $this->storeDataUrl($data->printImage, 'order-requests/prints'),
-            ]);
+            foreach ($data->designs as $designData) {
+                $design = $item->designs()->create([
+                    'side' => $designData['side'],
+                    'canvas_json' => $designData['canvas_json'],
+                    'preview_image_path' => $this->storeDataUrl($designData['preview_image'], 'order-requests/previews'),
+                    'print_image_path' => $this->storeDataUrl($designData['print_image'], 'order-requests/prints'),
+                ]);
 
-            $this->storeAssets($design, $data->assets);
-            $this->storeTextLayers($design, $data->canvasJson['layers'] ?? []);
+                $this->storeAssets($design, $designData['assets'] ?? []);
+                $this->storeTextLayers($design, $designData['canvas_json']['layers'] ?? []);
+            }
 
-            return $orderRequest->load('items.design.assets', 'items.design.textLayers');
+            return $orderRequest->load('items.design.assets', 'items.design.textLayers', 'items.designs.assets', 'items.designs.textLayers');
         });
     }
 

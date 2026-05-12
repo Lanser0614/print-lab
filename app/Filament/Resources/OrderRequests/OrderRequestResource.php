@@ -35,6 +35,8 @@ class OrderRequestResource extends Resource
                 'assignedAdmin',
                 'items.design.assets',
                 'items.design.textLayers',
+                'items.designs.assets',
+                'items.designs.textLayers',
             ]);
     }
 
