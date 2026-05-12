@@ -1406,16 +1406,13 @@ function drawStar(c, cx, cy, r, pts) {
   c.closePath();
 }
 
-function drawSelection(layer) {
-  ctx.save();
-  ctx.translate(layer.x, layer.y);
-  ctx.rotate(layer.rotation * Math.PI/180);
-  ctx.scale(layer.scale, layer.scale);
+const HANDLE_SIZE = 6;
+const HANDLE_HIT_SIZE = 14;
+const ROTATE_HANDLE_OFFSET = 30;
+const MIN_LAYER_SCALE = 0.05;
+const MAX_LAYER_SCALE = 4;
 
-  ctx.strokeStyle = '#007aff';
-  ctx.lineWidth = 1.5 / layer.scale;
-  ctx.setLineDash([4/layer.scale, 4/layer.scale]);
-
+function getSelectionBounds(layer) {
   let bx, by, bw, bh;
   if (layer.type === 'text') {
     ctx.font = `${layer.bold?'bold ':''}${layer.fontSize}px ${layer.fontFamily}`;
@@ -1431,12 +1428,49 @@ function drawSelection(layer) {
     bw = r*2; bh = r*2; bx = -r; by = -r;
   }
 
+  return { bx, by, bw, bh };
+}
+
+function getSelectionHandlePoints(bounds) {
+  const { bx, by, bw, bh } = bounds;
+  return [
+    { name: 'tl', x: bx, y: by },
+    { name: 't', x: bx + bw / 2, y: by },
+    { name: 'tr', x: bx + bw, y: by },
+    { name: 'r', x: bx + bw, y: by + bh / 2 },
+    { name: 'br', x: bx + bw, y: by + bh },
+    { name: 'b', x: bx + bw / 2, y: by + bh },
+    { name: 'bl', x: bx, y: by + bh },
+    { name: 'l', x: bx, y: by + bh / 2 },
+  ];
+}
+
+function drawSelection(layer) {
+  ctx.save();
+  ctx.translate(layer.x, layer.y);
+  ctx.rotate(layer.rotation * Math.PI/180);
+  ctx.scale(layer.scale, layer.scale);
+
+  ctx.strokeStyle = '#007aff';
+  ctx.lineWidth = 1.5 / layer.scale;
+  ctx.setLineDash([4/layer.scale, 4/layer.scale]);
+
+  const { bx, by, bw, bh } = getSelectionBounds(layer);
   ctx.strokeRect(bx, by, bw, bh);
   ctx.setLineDash([]);
 
-  // Corner handles
-  const hs = 6/layer.scale;
-  [[bx,by],[bx+bw,by],[bx+bw,by+bh],[bx,by+bh]].forEach(([hx,hy]) => {
+  const rotateOffset = ROTATE_HANDLE_OFFSET / layer.scale;
+  const rotateX = bx + bw / 2;
+  const rotateY = by - rotateOffset;
+  ctx.beginPath();
+  ctx.moveTo(bx + bw / 2, by);
+  ctx.lineTo(rotateX, rotateY);
+  ctx.strokeStyle = '#007aff';
+  ctx.lineWidth = 1.2 / layer.scale;
+  ctx.stroke();
+
+  const hs = HANDLE_SIZE/layer.scale;
+  getSelectionHandlePoints({ bx, by, bw, bh }).forEach(({x: hx, y: hy}) => {
     ctx.beginPath();
     ctx.arc(hx, hy, hs, 0, Math.PI*2);
     ctx.fillStyle = '#007aff';
@@ -1445,6 +1479,14 @@ function drawSelection(layer) {
     ctx.lineWidth = 1.5/layer.scale;
     ctx.stroke();
   });
+
+  ctx.beginPath();
+  ctx.arc(rotateX, rotateY, hs, 0, Math.PI*2);
+  ctx.fillStyle = '#ff3b5c';
+  ctx.fill();
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 1.5/layer.scale;
+  ctx.stroke();
 
   ctx.restore();
 }
@@ -1646,10 +1688,9 @@ function deleteLayer(id, e) {
   scheduleCurrentSideDraftSave();
 }
 
-// DRAG & ROTATE INTERACTIONS
+// DRAG, RESIZE & ROTATE INTERACTIONS
 // ============================================================
-let isDragging = false, dragOffX = 0, dragOffY = 0;
-let isRotating = false, rotStartAngle = 0, rotStartRot = 0;
+let activeInteraction = null;
 
 function getCanvasPos(e) {
   const rect = canvas.getBoundingClientRect();
@@ -1660,14 +1701,56 @@ function getCanvasPos(e) {
   ];
 }
 
+function getLayerLocalPoint(layer, x, y) {
+  const dx = x - layer.x, dy = y - layer.y;
+  const cos = Math.cos(-layer.rotation * Math.PI/180);
+  const sin = Math.sin(-layer.rotation * Math.PI/180);
+  return [
+    (dx*cos - dy*sin) / layer.scale,
+    (dx*sin + dy*cos) / layer.scale
+  ];
+}
+
+function getSelectionHit(layer, x, y) {
+  const [lx, ly] = getLayerLocalPoint(layer, x, y);
+  const bounds = getSelectionBounds(layer);
+  const hitSize = HANDLE_HIT_SIZE / layer.scale;
+
+  const rotateX = bounds.bx + bounds.bw / 2;
+  const rotateY = bounds.by - (ROTATE_HANDLE_OFFSET / layer.scale);
+  if (Math.hypot(lx - rotateX, ly - rotateY) <= hitSize) {
+    return { type: 'rotate' };
+  }
+
+  for (const handle of getSelectionHandlePoints(bounds)) {
+    if (Math.hypot(lx - handle.x, ly - handle.y) <= hitSize) {
+      return { type: 'resize', handle: handle.name };
+    }
+  }
+
+  const insideX = lx >= bounds.bx - hitSize && lx <= bounds.bx + bounds.bw + hitSize;
+  const insideY = ly >= bounds.by - hitSize && ly <= bounds.by + bounds.bh + hitSize;
+  const nearLeft = Math.abs(lx - bounds.bx) <= hitSize && insideY;
+  const nearRight = Math.abs(lx - (bounds.bx + bounds.bw)) <= hitSize && insideY;
+  const nearTop = Math.abs(ly - bounds.by) <= hitSize && insideX;
+  const nearBottom = Math.abs(ly - (bounds.by + bounds.bh)) <= hitSize && insideX;
+
+  if (nearLeft && nearTop) return { type: 'resize', handle: 'tl' };
+  if (nearRight && nearTop) return { type: 'resize', handle: 'tr' };
+  if (nearRight && nearBottom) return { type: 'resize', handle: 'br' };
+  if (nearLeft && nearBottom) return { type: 'resize', handle: 'bl' };
+  if (nearTop) return { type: 'resize', handle: 't' };
+  if (nearRight) return { type: 'resize', handle: 'r' };
+  if (nearBottom) return { type: 'resize', handle: 'b' };
+  if (nearLeft) return { type: 'resize', handle: 'l' };
+
+  return null;
+}
+
 function getLayerAt(x, y) {
   for (let i = layers.length-1; i >= 0; i--) {
     const l = layers[i];
-    const dx = x - l.x, dy = y - l.y;
-    const cos = Math.cos(-l.rotation * Math.PI/180);
-    const sin = Math.sin(-l.rotation * Math.PI/180);
-    const lx = (dx*cos - dy*sin) / l.scale;
-    const ly = (dx*sin + dy*cos) / l.scale;
+    const [lx, ly] = getLayerLocalPoint(l, x, y);
     let hw, hh;
     if (l.type === 'text') {
       ctx.font = `${l.bold?'bold ':''}${l.fontSize}px ${l.fontFamily}`;
@@ -1681,86 +1764,121 @@ function getLayerAt(x, y) {
   return null;
 }
 
-canvas.addEventListener('mousedown', e => {
+function interactionCursor(hit) {
+  if (!hit) return null;
+  if (hit.type === 'rotate') return 'grab';
+  if (['t', 'b'].includes(hit.handle)) return 'ns-resize';
+  if (['l', 'r'].includes(hit.handle)) return 'ew-resize';
+  if (['tl', 'br'].includes(hit.handle)) return 'nwse-resize';
+  return 'nesw-resize';
+}
+
+function updateTransformControlsForLayer(layer) {
+  const rot = document.getElementById('rotR');
+  const rotVal = document.getElementById('rotVal');
+  const scale = document.getElementById('scaleR');
+  const scaleVal = document.getElementById('scaleVal');
+  if (rot) rot.value = layer.rotation;
+  if (rotVal) rotVal.textContent = Math.round(layer.rotation);
+  if (scale) scale.value = Math.round(layer.scale * 100);
+  if (scaleVal) scaleVal.textContent = Math.round(layer.scale * 100);
+}
+
+function beginCanvasInteraction(e) {
   const [x, y] = getCanvasPos(e);
-  const hit = getLayerAt(x, y);
+  let hit = selectedId ? layers.find(l => l.id === selectedId) : null;
+  let selectionHit = hit ? getSelectionHit(hit, x, y) : null;
+
+  if (!selectionHit) hit = getLayerAt(x, y);
   if (hit) {
-    if (e.altKey || e.metaKey) {
-      // Rotate mode
-      isRotating = true;
-      selectedId = hit.id;
-      rotStartAngle = Math.atan2(y - hit.y, x - hit.x) * 180/Math.PI;
-      rotStartRot = hit.rotation;
+    selectedId = hit.id;
+    if (!selectionHit) selectionHit = getSelectionHit(hit, x, y);
+    saveHistory();
+
+    if (selectionHit?.type === 'resize') {
+      const distance = Math.max(1, Math.hypot(x - hit.x, y - hit.y));
+      activeInteraction = {
+        type: 'resize',
+        id: hit.id,
+        startDistance: distance,
+        startScale: hit.scale || 1,
+      };
+    } else if (selectionHit?.type === 'rotate' || e.altKey || e.metaKey) {
+      activeInteraction = {
+        type: 'rotate',
+        id: hit.id,
+        startAngle: Math.atan2(y - hit.y, x - hit.x) * 180/Math.PI,
+        startRotation: hit.rotation || 0,
+      };
     } else {
-      isDragging = true;
-      selectedId = hit.id;
-      dragOffX = x - hit.x;
-      dragOffY = y - hit.y;
+      activeInteraction = {
+        type: 'move',
+        id: hit.id,
+        offX: x - hit.x,
+        offY: y - hit.y,
+      };
     }
+
     refreshUI();
-    canvas.style.cursor = 'grabbing';
+    canvas.style.cursor = activeInteraction.type === 'move' ? 'grabbing' : interactionCursor(selectionHit) || 'grabbing';
   } else {
     selectedId = null;
     refreshUI();
   }
-});
+}
 
-canvas.addEventListener('mousemove', e => {
+function updateCanvasInteraction(e) {
   const [x, y] = getCanvasPos(e);
-  if (isDragging && selectedId) {
-    const sel = layers.find(l => l.id === selectedId);
-    if (sel) { sel.x = x - dragOffX; sel.y = y - dragOffY; renderAll(); }
-  } else if (isRotating && selectedId) {
-    const sel = layers.find(l => l.id === selectedId);
-    if (sel) {
-      const ang = Math.atan2(y - sel.y, x - sel.x) * 180/Math.PI;
-      sel.rotation = rotStartRot + (ang - rotStartAngle);
-      document.getElementById('rotR').value = sel.rotation;
-      document.getElementById('rotVal').textContent = Math.round(sel.rotation);
-      renderAll();
-    }
-  } else {
-    canvas.style.cursor = getLayerAt(x, y) ? 'grab' : 'default';
-  }
-});
+  if (activeInteraction && selectedId) {
+    const sel = layers.find(l => l.id === activeInteraction.id);
+    if (!sel) return;
 
-canvas.addEventListener('mouseup', () => {
-  const changed = isDragging || isRotating;
-  isDragging = false;
-  isRotating = false;
+    if (activeInteraction.type === 'move') {
+      sel.x = x - activeInteraction.offX;
+      sel.y = y - activeInteraction.offY;
+    } else if (activeInteraction.type === 'resize') {
+      const distance = Math.max(1, Math.hypot(x - sel.x, y - sel.y));
+      sel.scale = Math.max(
+        MIN_LAYER_SCALE,
+        Math.min(MAX_LAYER_SCALE, activeInteraction.startScale * (distance / activeInteraction.startDistance))
+      );
+    } else if (activeInteraction.type === 'rotate') {
+      const ang = Math.atan2(y - sel.y, x - sel.x) * 180/Math.PI;
+      sel.rotation = activeInteraction.startRotation + (ang - activeInteraction.startAngle);
+    }
+
+    updateTransformControlsForLayer(sel);
+    renderAll();
+    return;
+  }
+
+  const selected = selectedId ? layers.find(l => l.id === selectedId) : null;
+  const selectionHit = selected ? getSelectionHit(selected, x, y) : null;
+  canvas.style.cursor = interactionCursor(selectionHit) || (getLayerAt(x, y) ? 'grab' : 'default');
+}
+
+function endCanvasInteraction() {
+  const changed = !!activeInteraction;
+  activeInteraction = null;
   canvas.style.cursor = 'default';
   if (changed) scheduleCurrentSideDraftSave();
-});
-canvas.addEventListener('mouseleave', () => {
-  const changed = isDragging || isRotating;
-  isDragging = false;
-  isRotating = false;
-  if (changed) scheduleCurrentSideDraftSave();
-});
+}
+
+canvas.addEventListener('mousedown', beginCanvasInteraction);
+canvas.addEventListener('mousemove', updateCanvasInteraction);
+canvas.addEventListener('mouseup', endCanvasInteraction);
+canvas.addEventListener('mouseleave', endCanvasInteraction);
 
 // Touch
 canvas.addEventListener('touchstart', e => {
   e.preventDefault();
-  const [x, y] = getCanvasPos(e);
-  const hit = getLayerAt(x, y);
-  if (hit) {
-    isDragging = true; selectedId = hit.id;
-    dragOffX = x - hit.x; dragOffY = y - hit.y;
-    refreshUI();
-  }
+  beginCanvasInteraction(e);
 }, {passive:false});
 canvas.addEventListener('touchmove', e => {
   e.preventDefault();
-  if (!isDragging) return;
-  const [x, y] = getCanvasPos(e);
-  const sel = layers.find(l => l.id === selectedId);
-  if (sel) { sel.x = x - dragOffX; sel.y = y - dragOffY; renderAll(); }
+  updateCanvasInteraction(e);
 }, {passive:false});
-canvas.addEventListener('touchend', () => {
-  const changed = isDragging;
-  isDragging = false;
-  if (changed) scheduleCurrentSideDraftSave();
-});
+canvas.addEventListener('touchend', endCanvasInteraction);
 
 // ============================================================
 // HISTORY
