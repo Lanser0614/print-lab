@@ -96,34 +96,72 @@ jobs:
           scp scripts/setup-production-domain.sh deploy-target:"${DEPLOY_PATH}/scripts/setup-production-domain.sh"
           ssh deploy-target "chmod +x '${DEPLOY_PATH}/scripts/setup-production-domain.sh'"
 
+      - name: Build remote deploy script
+        env:
+          PRINTLAB_APP_IMAGE: ${{ steps.images.outputs.app }}
+          PRINTLAB_NGINX_IMAGE: ${{ steps.images.outputs.nginx }}
+        run: |
+          cat > /tmp/remote-deploy.sh <<'OUTER'
+          #!/usr/bin/env bash
+          set -Eeuo pipefail
+          set -x
+
+          : "${DEPLOY_PATH:?DEPLOY_PATH not set}"
+          : "${GHCR_TOKEN:?GHCR_TOKEN not set}"
+          : "${GHCR_USERNAME:?GHCR_USERNAME not set}"
+          : "${PRINTLAB_APP_IMAGE:?PRINTLAB_APP_IMAGE not set}"
+          : "${PRINTLAB_NGINX_IMAGE:?PRINTLAB_NGINX_IMAGE not set}"
+
+          cd "${DEPLOY_PATH}"
+          ls -la
+          if [[ ! -f .env ]]; then
+              echo "FATAL: ${DEPLOY_PATH}/.env is missing. Create it on the server before deploying." >&2
+              exit 10
+          fi
+
+          echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
+
+          printf '%s\n' \
+              "PRINTLAB_APP_IMAGE=${PRINTLAB_APP_IMAGE}" \
+              "PRINTLAB_NGINX_IMAGE=${PRINTLAB_NGINX_IMAGE}" \
+              > .deploy.env
+
+          dc() {
+              docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml "$@"
+          }
+
+          dc pull
+          dc up -d mysql redis
+          dc run --rm app php artisan package:discover --ansi
+          dc run --rm app php artisan migrate --force
+          dc up -d app nginx queue
+          dc exec -T app php artisan optimize:clear
+          dc exec -T app php artisan config:cache
+          dc exec -T app php artisan route:cache
+          dc exec -T app php artisan view:cache
+
+          DOMAIN="${DEPLOY_DOMAIN}" \
+          EMAIL="${LETSENCRYPT_EMAIL}" \
+          DEPLOY_PATH="${DEPLOY_PATH}" \
+              bash scripts/setup-production-domain.sh
+          OUTER
+          chmod +x /tmp/remote-deploy.sh
+
       - name: Deploy on server
         env:
           PRINTLAB_APP_IMAGE: ${{ steps.images.outputs.app }}
           PRINTLAB_NGINX_IMAGE: ${{ steps.images.outputs.nginx }}
         run: |
-          ssh deploy-target bash -s <<EOF
-          set -Eeuo pipefail
-          cd "${DEPLOY_PATH}"
-          test -f .env
-          echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
-          printf '%s\n' \
-            'PRINTLAB_APP_IMAGE=${PRINTLAB_APP_IMAGE}' \
-            'PRINTLAB_NGINX_IMAGE=${PRINTLAB_NGINX_IMAGE}' \
-            > .deploy.env
-          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml pull
-          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml up -d mysql redis
-          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml run --rm app php artisan package:discover --ansi
-          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml run --rm app php artisan migrate --force
-          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml up -d app nginx queue
-          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml exec -T app php artisan optimize:clear
-          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml exec -T app php artisan config:cache
-          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml exec -T app php artisan route:cache
-          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml exec -T app php artisan view:cache
-          DOMAIN="${DEPLOY_DOMAIN}" \
-          EMAIL="${LETSENCRYPT_EMAIL}" \
-          DEPLOY_PATH="${DEPLOY_PATH}" \
-          bash scripts/setup-production-domain.sh
-          EOF
+          scp /tmp/remote-deploy.sh deploy-target:/tmp/remote-deploy.sh
+          ssh deploy-target \
+              "DEPLOY_PATH='${DEPLOY_PATH}' \
+               GHCR_TOKEN='${GHCR_TOKEN}' \
+               GHCR_USERNAME='${GHCR_USERNAME}' \
+               PRINTLAB_APP_IMAGE='${PRINTLAB_APP_IMAGE}' \
+               PRINTLAB_NGINX_IMAGE='${PRINTLAB_NGINX_IMAGE}' \
+               DEPLOY_DOMAIN='${DEPLOY_DOMAIN}' \
+               LETSENCRYPT_EMAIL='${LETSENCRYPT_EMAIL}' \
+               bash /tmp/remote-deploy.sh"
 
       - name: Cleanup SSH
         if: always()
