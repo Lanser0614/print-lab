@@ -20,6 +20,16 @@ jobs:
     name: Deploy Docker stack
     runs-on: ubuntu-latest
 
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USERNAME: ${{ secrets.DEPLOY_USERNAME }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
+      GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+      DEPLOY_DOMAIN: ${{ secrets.DEPLOY_DOMAIN || 'printlab.uz' }}
+      LETSENCRYPT_EMAIL: ${{ secrets.LETSENCRYPT_EMAIL || 'admin@printlab.uz' }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,50 +42,91 @@ jobs:
           echo "app=ghcr.io/${repository}/app:${tag}" >> "$GITHUB_OUTPUT"
           echo "nginx=ghcr.io/${repository}/nginx:${tag}" >> "$GITHUB_OUTPUT"
 
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          # Robust ssh-keyscan with retries; tolerates short network blips.
+          for attempt in 1 2 3 4 5; do
+            if ssh-keyscan -p "${DEPLOY_PORT}" -T 15 -t rsa,ecdsa,ed25519 "${DEPLOY_HOST}" >> ~/.ssh/known_hosts 2>/dev/null; then
+              break
+            fi
+            echo "ssh-keyscan attempt ${attempt} failed, retrying..."
+            sleep 5
+          done
+          chmod 644 ~/.ssh/known_hosts
+
+          cat >> ~/.ssh/config <<EOF
+          Host deploy-target
+            HostName ${DEPLOY_HOST}
+            User ${DEPLOY_USERNAME}
+            Port ${DEPLOY_PORT}
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            ServerAliveInterval 30
+            ServerAliveCountMax 6
+            ConnectTimeout 30
+            ConnectionAttempts 5
+            TCPKeepAlive yes
+            ControlMaster auto
+            ControlPath ~/.ssh/cm-%r@%h:%p
+            ControlPersist 10m
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Probe connectivity
+        run: |
+          for attempt in 1 2 3 4 5; do
+            if ssh deploy-target 'echo connected && uname -a'; then
+              exit 0
+            fi
+            echo "ssh probe attempt ${attempt} failed, retrying..."
+            sleep 10
+          done
+          echo "Could not reach the server over SSH" >&2
+          exit 1
+
       - name: Upload production files
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USERNAME }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          passphrase: ${{ secrets.DEPLOY_SSH_PASSPHRASE }}
-          port: ${{ secrets.DEPLOY_PORT || 22 }}
-          timeout: 60s
-          command_timeout: 5m
-          source: 'docker-compose.prod.yml,scripts/setup-production-domain.sh'
-          target: ${{ secrets.DEPLOY_PATH }}
-          overwrite: true
-          rm: false
+        run: |
+          ssh deploy-target "mkdir -p '${DEPLOY_PATH}/scripts'"
+          scp docker-compose.prod.yml deploy-target:"${DEPLOY_PATH}/docker-compose.prod.yml"
+          scp scripts/setup-production-domain.sh deploy-target:"${DEPLOY_PATH}/scripts/setup-production-domain.sh"
+          ssh deploy-target "chmod +x '${DEPLOY_PATH}/scripts/setup-production-domain.sh'"
 
       - name: Deploy on server
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USERNAME }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          passphrase: ${{ secrets.DEPLOY_SSH_PASSPHRASE }}
-          port: ${{ secrets.DEPLOY_PORT || 22 }}
-          timeout: 60s
-          command_timeout: 30m
-          script_stop: true
-          script: |
-            cd "${{ secrets.DEPLOY_PATH }}"
-            test -f .env
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
-            printf '%s\n' \
-              'PRINTLAB_APP_IMAGE=${{ steps.images.outputs.app }}' \
-              'PRINTLAB_NGINX_IMAGE=${{ steps.images.outputs.nginx }}' \
-              > .deploy.env
-            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml pull
-            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml up -d mysql redis
-            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml run --rm app php artisan package:discover --ansi
-            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml run --rm app php artisan migrate --force
-            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml up -d app nginx queue
-            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml exec -T app php artisan optimize:clear
-            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml exec -T app php artisan config:cache
-            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml exec -T app php artisan route:cache
-            docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml exec -T app php artisan view:cache
-            DOMAIN="${{ secrets.DEPLOY_DOMAIN || 'printlab.uz' }}" \
-            EMAIL="${{ secrets.LETSENCRYPT_EMAIL || 'admin@printlab.uz' }}" \
-            DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}" \
-            bash scripts/setup-production-domain.sh
+        env:
+          PRINTLAB_APP_IMAGE: ${{ steps.images.outputs.app }}
+          PRINTLAB_NGINX_IMAGE: ${{ steps.images.outputs.nginx }}
+        run: |
+          ssh deploy-target bash -s <<EOF
+          set -Eeuo pipefail
+          cd "${DEPLOY_PATH}"
+          test -f .env
+          echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
+          printf '%s\n' \
+            'PRINTLAB_APP_IMAGE=${PRINTLAB_APP_IMAGE}' \
+            'PRINTLAB_NGINX_IMAGE=${PRINTLAB_NGINX_IMAGE}' \
+            > .deploy.env
+          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml pull
+          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml up -d mysql redis
+          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml run --rm app php artisan package:discover --ansi
+          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml run --rm app php artisan migrate --force
+          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml up -d app nginx queue
+          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml exec -T app php artisan optimize:clear
+          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml exec -T app php artisan config:cache
+          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml exec -T app php artisan route:cache
+          docker compose --env-file .env --env-file .deploy.env -f docker-compose.prod.yml exec -T app php artisan view:cache
+          DOMAIN="${DEPLOY_DOMAIN}" \
+          EMAIL="${LETSENCRYPT_EMAIL}" \
+          DEPLOY_PATH="${DEPLOY_PATH}" \
+          bash scripts/setup-production-domain.sh
+          EOF
+
+      - name: Cleanup SSH
+        if: always()
+        run: |
+          ssh -O exit deploy-target 2>/dev/null || true
+          rm -f ~/.ssh/deploy_key ~/.ssh/config ~/.ssh/known_hosts
