@@ -23,7 +23,8 @@ Add these in GitHub: `Settings -> Secrets and variables -> Actions -> New reposi
 
 - `DEPLOY_HOST`: server hostname or IP address.
 - `DEPLOY_USERNAME`: SSH username.
-- `DEPLOY_PASSWORD`: SSH password.
+- `DEPLOY_SSH_KEY`: private SSH key (full PEM contents, including `-----BEGIN ...-----` / `-----END ...-----` lines). The matching public key must be in `~/.ssh/authorized_keys` on the server for `DEPLOY_USERNAME`.
+- `DEPLOY_SSH_PASSPHRASE`: optional. Set only if the private key is encrypted with a passphrase.
 - `DEPLOY_PATH`: absolute path to the Laravel project on the server, for example `/var/www/printlab`.
 - `DEPLOY_PORT`: SSH port. Optional if the server uses port `22`.
 - `GHCR_USERNAME`: GitHub username that can read the GHCR package.
