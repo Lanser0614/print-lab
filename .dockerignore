@@ -1,6 +1,5 @@
 .git
 .idea
-.vscode
 node_modules
 vendor
 storage/logs/*
@@ -10,15 +9,4 @@ storage/framework/views/*
 storage/pail
 bootstrap/cache/*.php
 .env
-.env.*
-!.env.example
 .phpunit.result.cache
-.phpunit.cache
-tests
-.github
-docs
-design_handoff_printlab
-*.md
-docker-compose.yml
-docker-compose.prod.yml
-docker-compose.override.yml
