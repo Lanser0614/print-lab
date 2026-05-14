@@ -95,8 +95,13 @@ if command -v ufw >/dev/null 2>&1; then
     ${SUDO} ufw allow 'Nginx Full' || true
 fi
 
-log "Writing Nginx reverse proxy config"
-${SUDO} tee "/etc/nginx/sites-available/${NGINX_SITE_NAME}" >/dev/null <<NGINX
+NGINX_SITE_PATH="/etc/nginx/sites-available/${NGINX_SITE_NAME}"
+
+# Write the plain HTTP reverse-proxy config only if it doesn't exist yet.
+# Once Certbot installs the SSL block we never overwrite it on subsequent runs.
+if [[ ! -f "${NGINX_SITE_PATH}" ]]; then
+    log "Writing initial Nginx reverse proxy config (HTTP only)"
+    ${SUDO} tee "${NGINX_SITE_PATH}" >/dev/null <<NGINX
 server {
     listen 80;
     server_name $(server_names);
@@ -116,8 +121,11 @@ server {
     }
 }
 NGINX
+else
+    log "Nginx site config already exists at ${NGINX_SITE_PATH}; leaving SSL block intact"
+fi
 
-${SUDO} ln -sfn "/etc/nginx/sites-available/${NGINX_SITE_NAME}" "/etc/nginx/sites-enabled/${NGINX_SITE_NAME}"
+${SUDO} ln -sfn "${NGINX_SITE_PATH}" "/etc/nginx/sites-enabled/${NGINX_SITE_NAME}"
 ${SUDO} rm -f /etc/nginx/sites-enabled/default
 ${SUDO} nginx -t
 ${SUDO} systemctl reload nginx
@@ -130,8 +138,11 @@ if [[ "${CERTBOT_REINSTALL}" == "true" || ! -d "/etc/letsencrypt/live/${DOMAIN}"
         --agree-tos \
         --redirect \
         --email "${EMAIL}"
+elif ! grep -q "listen 443" "${NGINX_SITE_PATH}"; then
+    log "Certificate exists but SSL block is missing in Nginx config; reinstalling SSL"
+    ${SUDO} certbot install --cert-name "${DOMAIN}" --nginx --redirect
 else
-    log "Let's Encrypt certificate already exists for ${DOMAIN}"
+    log "Let's Encrypt certificate and SSL config already in place for ${DOMAIN}; attempting renewal"
     ${SUDO} certbot renew --quiet || true
 fi
 
