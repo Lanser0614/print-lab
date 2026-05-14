@@ -72,7 +72,7 @@ class ConstructorController extends Controller
 
     public function localFallback(Request $request): mixed
     {
-        abort_unless(app()->environment('local'), 404);
+//        abort_unless(app()->environment('local'), 404);
 
         if (! Product::query()->where('slug', 'classic-t-shirt')->exists()) {
             app(DatabaseSeeder::class)->run();
