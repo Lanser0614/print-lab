@@ -132,8 +132,26 @@ jobs:
 
           dc pull
           dc up -d mysql redis
+
+          # Ensure Laravel storage subdirs exist inside the named volume
+          # with www-data ownership. Idempotent — safe to run on every deploy.
+          dc run --rm --user root --no-deps --entrypoint sh app -c '
+            set -e
+            mkdir -p \
+              storage/app/public \
+              storage/app/private \
+              storage/framework/cache/data \
+              storage/framework/sessions \
+              storage/framework/views \
+              storage/logs \
+              bootstrap/cache
+            chown -R www-data:www-data storage bootstrap/cache
+            chmod -R ug+rwX storage bootstrap/cache
+          '
+
           dc run --rm app php artisan package:discover --ansi
           dc run --rm app php artisan migrate --force
+          dc run --rm app php artisan storage:link --force
           dc up -d app nginx queue
           dc exec -T app php artisan optimize:clear
           dc exec -T app php artisan config:cache
