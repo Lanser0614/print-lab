@@ -5,7 +5,7 @@ services:
     ports:
       - "${HTTP_PORT:-80}:80"
     volumes:
-      - public-storage-data:/var/www/html/public/storage:ro
+      - ./public-storage-data:/var/www/html/public/storage:ro
     depends_on:
       - app
 
@@ -20,8 +20,8 @@ services:
       DB_HOST: mysql
       REDIS_HOST: redis
     volumes:
-      - storage-data:/var/www/html/storage
-      - public-storage-data:/var/www/html/storage/app/public
+      - ./storage-data:/var/www/html/storage
+      - ./public-storage-data:/var/www/html/storage/app/public
     depends_on:
       mysql:
         condition: service_healthy
@@ -40,8 +40,8 @@ services:
       DB_HOST: mysql
       REDIS_HOST: redis
     volumes:
-      - storage-data:/var/www/html/storage
-      - public-storage-data:/var/www/html/storage/app/public
+      - ./storage-data:/var/www/html/storage
+      - ./public-storage-data:/var/www/html/storage/app/public
     depends_on:
       app:
         condition: service_started
@@ -55,7 +55,7 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is required}
     volumes:
-      - mysql-data:/var/lib/mysql
+      - ./mysql-data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
@@ -66,7 +66,7 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     volumes:
-      - redis-data:/data
+      - ./redis-data:/data
 
 volumes:
   mysql-data:
