@@ -134,6 +134,7 @@ jobs:
           dc up -d mysql redis
           dc run --rm app php artisan package:discover --ansi
           dc run --rm app php artisan migrate --force
+          dc run --rm app php artisan key:generate
           dc up -d app nginx queue
           dc exec -T app php artisan optimize:clear
           dc exec -T app php artisan config:cache
