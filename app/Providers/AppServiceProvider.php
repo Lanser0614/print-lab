@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Services\Ai\ImageGenerator;
 use App\Services\Ai\FakeImageGenerator;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use App\Services\Ai\OpenAiImageGenerator;
 
@@ -26,6 +27,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Force HTTPS URL generation in production. We sit behind a reverse proxy
+        // (host Nginx + Certbot) that terminates TLS, so PHP sees plain HTTP.
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
     }
 }
