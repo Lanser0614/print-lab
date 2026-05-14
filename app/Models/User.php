@@ -2,16 +2,29 @@
 
 namespace App\Models;
 
+use Filament\Panel;
+use Filament\Models\Contracts\FilamentUser;
 use Database\Factories\UserFactory;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        $email = strtolower((string) $this->email);
+
+        if ($email === '') {
+            return false;
+        }
+
+        return in_array($email, config('filament-admin.emails', []), true);
+    }
 
     protected $fillable = [
         'name',
