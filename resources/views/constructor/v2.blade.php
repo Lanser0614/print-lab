@@ -418,6 +418,31 @@ input[type=color] { width: 36px; height: 30px; border-radius: 6px; border: 1px s
   text-decoration: none;
   text-align: center;
 }
+.external-ai-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.external-ai-title { font-size: 12px; font-weight: 800; color: var(--text); }
+.external-ai-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.external-ai-actions .btn { width: 100%; text-align: center; }
+.external-ai-upload { grid-column: 1 / -1; cursor: pointer; }
+.external-ai-prompt {
+  display: none;
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.external-ai-prompt.visible { display: block; }
 
 /* TOAST */
 .toast {
@@ -1145,6 +1170,19 @@ body.constructor-v2 .order-title {
         </div>
         <button class="btn btn-primary ai-generate-btn" id="aiGenerateBtn" type="button" onclick="handleAiGenerate()" disabled>{{ __('site.constructor_ai_generate') }}</button>
         <a class="btn btn-ghost ai-studio-link" href="{{ route('ai-studio.show', ['product' => $product, 'variant' => $variant->id, 'side' => $side]) }}">{{ __('site.ai_studio_short_link') }}</a>
+        <div class="external-ai-panel">
+          <div class="external-ai-title">{{ __('site.constructor_external_ai_title') }}</div>
+          <div class="ai-print-message" id="externalAiMessage">{{ __('site.constructor_external_ai_hint') }}</div>
+          <div class="external-ai-actions">
+            <button class="btn btn-ghost" type="button" onclick="copyExternalAiPrompt()">{{ __('site.constructor_external_ai_copy_prompt') }}</button>
+            <button class="btn btn-ghost" type="button" onclick="openExternalAiChat()">{{ __('site.constructor_external_ai_open_chatgpt') }}</button>
+            <label class="btn btn-primary external-ai-upload">
+              {{ __('site.constructor_external_ai_upload_result') }}
+              <input type="file" accept="image/*" style="display:none" onchange="addImage(event)">
+            </label>
+          </div>
+          <textarea class="external-ai-prompt" id="externalAiPromptBox" readonly></textarea>
+        </div>
         <div class="ai-print-message" id="aiPrintMessage"></div>
       </div>
     </div>
@@ -2209,6 +2247,58 @@ function showAiPrintMessage(message, type = 'info') {
   box.textContent = message || '';
   box.classList.remove('error', 'success');
   if (type === 'error' || type === 'success') box.classList.add(type);
+}
+
+function showExternalAiMessage(message, type = 'info') {
+  const box = document.getElementById('externalAiMessage');
+  if (!box) return;
+  box.textContent = message || '';
+  box.classList.remove('error', 'success');
+  if (type === 'error' || type === 'success') box.classList.add(type);
+}
+
+function buildExternalAiPrompt() {
+  const userPrompt = document.getElementById('aiPromptInput')?.value.trim();
+  const basePrompt = userPrompt || @json(__('site.constructor_external_ai_default_idea', ['product' => $productName]));
+
+  return @json(__('site.constructor_external_ai_prompt_template', ['product' => $productName, 'idea' => '__IDEA__']))
+    .replace('__IDEA__', basePrompt);
+}
+
+function showExternalAiPromptBox(prompt) {
+  const box = document.getElementById('externalAiPromptBox');
+  if (!box) return;
+  box.value = prompt;
+  box.classList.add('visible');
+}
+
+async function copyExternalAiPrompt() {
+  const prompt = buildExternalAiPrompt();
+  showExternalAiPromptBox(prompt);
+
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(prompt);
+    } else {
+      const fallback = document.getElementById('externalAiPromptBox');
+      fallback.focus();
+      fallback.select();
+      document.execCommand('copy');
+    }
+
+    showExternalAiMessage(@json(__('site.constructor_external_ai_prompt_copied')), 'success');
+    showToast(@json(__('site.constructor_external_ai_prompt_copied')));
+  } catch (error) {
+    const fallback = document.getElementById('externalAiPromptBox');
+    fallback?.focus();
+    fallback?.select();
+    showExternalAiMessage(@json(__('site.constructor_external_ai_manual_copy')), 'success');
+  }
+}
+
+async function openExternalAiChat() {
+  window.open('https://chatgpt.com/', '_blank', 'noopener,noreferrer');
+  await copyExternalAiPrompt();
 }
 
 function readAiReferenceImage() {

@@ -45,6 +45,24 @@ class ConstructorAiPrintUiTest extends TestCase
             ->assertSee('id="mTabAi"', false);
     }
 
+    public function test_constructor_v2_renders_external_chatgpt_ai_helper(): void
+    {
+        $product = $this->productWithVariant();
+
+        $response = $this->get(route('constructor.v2', $product));
+
+        $response
+            ->assertOk()
+            ->assertSee('external-ai-panel', false)
+            ->assertSee('id="externalAiMessage"', false)
+            ->assertSee('id="externalAiPromptBox"', false)
+            ->assertSee('copyExternalAiPrompt()', false)
+            ->assertSee('openExternalAiChat()', false)
+            ->assertSee('https://chatgpt.com/', false)
+            ->assertSee(__('site.constructor_external_ai_title', [], 'ru'))
+            ->assertSee(__('site.constructor_external_ai_upload_result', [], 'ru'));
+    }
+
     public function test_constructor_v2_includes_ai_print_javascript_helpers(): void
     {
         $product = $this->productWithVariant();
@@ -61,6 +79,9 @@ class ConstructorAiPrintUiTest extends TestCase
             ->assertSee('function updateAiPromptCounter', false)
             ->assertSee('function updateAiReferencePreview', false)
             ->assertSee('function mobileSyncAiPanel', false)
+            ->assertSee('function buildExternalAiPrompt', false)
+            ->assertSee('function showExternalAiPromptBox', false)
+            ->assertSee('function copyExternalAiPrompt', false)
             ->assertSee('function showAiPrintMessage', false);
     }
 
