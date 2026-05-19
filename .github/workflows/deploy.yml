@@ -157,6 +157,7 @@ jobs:
           dc exec -T app php artisan config:cache
           dc exec -T app php artisan route:cache
           dc exec -T app php artisan view:cache
+          docker image prune -f
 
           DOMAIN="${DEPLOY_DOMAIN}" \
           EMAIL="${LETSENCRYPT_EMAIL}" \
