@@ -225,6 +225,23 @@ body {
 }
 .canvas-wrap { position: relative; user-select: none; }
 #mainCanvas { display: block; border-radius: 4px; }
+.inline-text-editor {
+  position: absolute;
+  z-index: 80;
+  min-width: 72px;
+  min-height: 34px;
+  padding: 4px 8px;
+  border: 1.5px solid var(--accent);
+  border-radius: 6px;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+  text-align: center;
+  line-height: 1.15;
+  transform-origin: center center;
+}
 
 /* PRINT ZONE HINT */
 .zone-hint {
@@ -1344,6 +1361,11 @@ function resizeCanvas() {
   canvas.height = size;
   positionZoneHint();
   renderAll();
+
+  if (inlineTextEditor) {
+    const layer = layers.find(l => l.id === Number(inlineTextEditor.dataset.layerId));
+    if (layer) syncInlineEditorToLayer(layer, inlineTextEditor);
+  }
 }
 
 window.addEventListener('resize', resizeCanvas);
@@ -1359,6 +1381,8 @@ let selectedId = null;
 let nextId = 1;
 let history = [];
 let future = [];
+let inlineTextEditor = null;
+let inlineTextOriginal = '';
 
 function constructorDraftKey(side = constructorConfig.printArea?.side || 'front') {
   return [
@@ -2023,6 +2047,8 @@ function getDeleteHandlePoint(bounds, scale = 1) {
 }
 
 function drawSelection(layer) {
+  if (inlineTextEditor && inlineTextEditor.dataset.layerId === String(layer.id)) return;
+
   ctx.save();
   ctx.translate(layer.x, layer.y);
   ctx.rotate(layer.rotation * Math.PI/180);
@@ -2357,6 +2383,7 @@ function addText() {
   scheduleCurrentSideDraftSave();
   document.getElementById('textInput').value = layer.text;
   showToast(@json(__('site.constructor_text_added')));
+  startInlineTextEditing(layer);
 }
 
 function addShape(type) {
@@ -2453,6 +2480,99 @@ function updateSelectedText() {
   scheduleCurrentSideDraftSave();
 }
 
+function canvasToWrapPoint(x, y) {
+  const canvasRect = canvas.getBoundingClientRect();
+  const wrapRect = document.getElementById('canvasWrap').getBoundingClientRect();
+  return {
+    x: (canvasRect.left - wrapRect.left) + x * (canvasRect.width / canvas.width),
+    y: (canvasRect.top - wrapRect.top) + y * (canvasRect.height / canvas.height),
+  };
+}
+
+function syncInlineEditorToLayer(layer, editor) {
+  const bounds = getSelectionBounds(layer);
+  const topLeft = canvasToWrapPoint(layer.x + bounds.bx * layer.scale, layer.y + bounds.by * layer.scale);
+  const center = canvasToWrapPoint(layer.x, layer.y);
+  const width = Math.max(72, bounds.bw * layer.scale * (canvas.getBoundingClientRect().width / canvas.width));
+  const height = Math.max(34, bounds.bh * layer.scale * (canvas.getBoundingClientRect().height / canvas.height));
+
+  editor.style.left = `${topLeft.x}px`;
+  editor.style.top = `${topLeft.y}px`;
+  editor.style.width = `${width}px`;
+  editor.style.height = `${height}px`;
+  editor.style.font = `${layer.bold ? '700 ' : ''}${layer.fontSize * layer.scale * (canvas.getBoundingClientRect().height / canvas.height)}px ${layer.fontFamily}`;
+  editor.style.color = layer.color;
+  editor.style.transform = `rotate(${layer.rotation}deg)`;
+  editor.style.transformOrigin = `${center.x - topLeft.x}px ${center.y - topLeft.y}px`;
+}
+
+function finishInlineTextEditing({ cancel = false } = {}) {
+  if (!inlineTextEditor) return;
+
+  const layer = layers.find(l => l.id === Number(inlineTextEditor.dataset.layerId));
+  if (layer && cancel) {
+    layer.text = inlineTextOriginal;
+    layer.name = layer.text.substring(0, 14) || @json(__('site.constructor_text'));
+  }
+
+  inlineTextEditor.remove();
+  inlineTextEditor = null;
+  inlineTextOriginal = '';
+  refreshUI();
+  scheduleCurrentSideDraftSave();
+}
+
+function startInlineTextEditing(layer) {
+  if (!layer || layer.type !== 'text') return;
+  finishInlineTextEditing();
+
+  selectedId = layer.id;
+  inlineTextOriginal = layer.text;
+  const editor = document.createElement('textarea');
+  editor.className = 'inline-text-editor';
+  editor.dataset.layerId = String(layer.id);
+  editor.value = layer.text;
+  editor.rows = 1;
+  editor.spellcheck = false;
+  editor.setAttribute('aria-label', @json(__('site.constructor_text')));
+  document.getElementById('canvasWrap').appendChild(editor);
+  inlineTextEditor = editor;
+
+  syncInlineEditorToLayer(layer, editor);
+  renderAll();
+
+  editor.addEventListener('input', () => {
+    layer.text = editor.value;
+    layer.name = layer.text.substring(0, 14) || @json(__('site.constructor_text'));
+    document.getElementById('textInput').value = layer.text;
+    updateLayersList();
+    syncInlineEditorToLayer(layer, editor);
+    renderAll();
+  });
+  editor.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      finishInlineTextEditing({ cancel: true });
+    }
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      finishInlineTextEditing();
+    }
+  });
+  editor.addEventListener('blur', () => finishInlineTextEditing());
+  editor.focus();
+  editor.select();
+}
+
+function beginInlineTextEditingFromEvent(event) {
+  const [x, y] = getCanvasPos(event);
+  const layer = getLayerAt(x, y);
+  if (!layer || layer.type !== 'text') return;
+
+  event.preventDefault();
+  startInlineTextEditing(layer);
+}
+
 function syncTxtColor() {
   const val = document.getElementById('textColorHex').value;
   if (/^#[0-9a-fA-F]{6}$/.test(val)) {
@@ -2486,6 +2606,21 @@ function deleteLayer(id, e) {
   if (selectedId === id) selectedId = layers.length ? layers[layers.length-1].id : null;
   refreshUI();
   scheduleCurrentSideDraftSave();
+}
+
+function isTypingTarget(target) {
+  if (!target) return false;
+  const tagName = target.tagName;
+  return target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(tagName);
+}
+
+function deleteSelectedLayerFromKeyboard(event) {
+  if (!['Delete', 'Backspace'].includes(event.key)) return;
+  if (isTypingTarget(event.target)) return;
+  if (!selectedId) return;
+
+  event.preventDefault();
+  deleteLayer(selectedId);
 }
 
 // DRAG, RESIZE & ROTATE INTERACTIONS
@@ -2682,6 +2817,8 @@ canvas.addEventListener('mousedown', beginCanvasInteraction);
 canvas.addEventListener('mousemove', updateCanvasInteraction);
 canvas.addEventListener('mouseup', endCanvasInteraction);
 canvas.addEventListener('mouseleave', endCanvasInteraction);
+canvas.addEventListener('dblclick', beginInlineTextEditingFromEvent);
+document.addEventListener('keydown', deleteSelectedLayerFromKeyboard);
 
 // Touch
 canvas.addEventListener('touchstart', e => {

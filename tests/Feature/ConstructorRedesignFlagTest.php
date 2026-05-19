@@ -69,6 +69,40 @@ class ConstructorRedesignFlagTest extends TestCase
             ->assertSee("if (selectionHit?.type === 'delete')", false);
     }
 
+    public function test_constructor_v2_selected_layer_can_be_deleted_from_keyboard(): void
+    {
+        config()->set('printlab.constructor_v2_enabled', true);
+
+        $product = $this->productWithVariant();
+
+        $response = $this->get(route('constructor.show', $product));
+
+        $response
+            ->assertOk()
+            ->assertSee('function deleteSelectedLayerFromKeyboard', false)
+            ->assertSee("['Delete', 'Backspace'].includes(event.key)", false)
+            ->assertSee('isTypingTarget(event.target)', false)
+            ->assertSee("document.addEventListener('keydown', deleteSelectedLayerFromKeyboard)", false);
+    }
+
+    public function test_constructor_v2_text_layers_can_be_edited_inline_on_canvas(): void
+    {
+        config()->set('printlab.constructor_v2_enabled', true);
+
+        $product = $this->productWithVariant();
+
+        $response = $this->get(route('constructor.show', $product));
+
+        $response
+            ->assertOk()
+            ->assertSee('inline-text-editor', false)
+            ->assertSee('function startInlineTextEditing', false)
+            ->assertSee('function finishInlineTextEditing', false)
+            ->assertSee('function beginInlineTextEditingFromEvent', false)
+            ->assertSee("canvas.addEventListener('dblclick', beginInlineTextEditingFromEvent)", false)
+            ->assertSee('startInlineTextEditing(layer);', false);
+    }
+
     public function test_constructor_success_route_points_to_new_catalog_home(): void
     {
         $product = $this->productWithVariant();
