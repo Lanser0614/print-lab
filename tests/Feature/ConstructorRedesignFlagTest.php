@@ -37,6 +37,38 @@ class ConstructorRedesignFlagTest extends TestCase
         $response->assertSee('v2-tool-tabs', false);
     }
 
+    public function test_constructor_v2_mobile_panels_can_override_hidden_desktop_panel(): void
+    {
+        config()->set('printlab.constructor_v2_enabled', true);
+
+        $product = $this->productWithVariant();
+
+        $response = $this->get(route('constructor.show', $product));
+
+        $response
+            ->assertOk()
+            ->assertSee('body.constructor-v2 .panel-right.mobile-open', false)
+            ->assertSee('display: flex;', false)
+            ->assertSee("mobileSwitchTab('layers')", false)
+            ->assertSee("mobileSwitchTab('props')", false);
+    }
+
+    public function test_constructor_v2_selection_controls_include_delete_handle(): void
+    {
+        config()->set('printlab.constructor_v2_enabled', true);
+
+        $product = $this->productWithVariant();
+
+        $response = $this->get(route('constructor.show', $product));
+
+        $response
+            ->assertOk()
+            ->assertSee('const DELETE_HANDLE_OFFSET', false)
+            ->assertSee('function getDeleteHandlePoint', false)
+            ->assertSee("return { type: 'delete' }", false)
+            ->assertSee("if (selectionHit?.type === 'delete')", false);
+    }
+
     public function test_constructor_success_route_points_to_new_catalog_home(): void
     {
         $product = $this->productWithVariant();

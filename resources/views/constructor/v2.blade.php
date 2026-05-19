@@ -1005,6 +1005,10 @@ body.constructor-v2 .order-title {
   body.constructor-v2 .mobile-ai-print-panel {
     bottom: 64px;
   }
+
+  body.constructor-v2 .panel-right.mobile-open {
+    display: flex;
+  }
 }
 </style>
 </head>
@@ -1974,6 +1978,7 @@ function drawStar(c, cx, cy, r, pts) {
 const HANDLE_SIZE = 6;
 const HANDLE_HIT_SIZE = 14;
 const ROTATE_HANDLE_OFFSET = 30;
+const DELETE_HANDLE_OFFSET = 16;
 const MIN_LAYER_SCALE = 0.05;
 const MAX_LAYER_SCALE = 4;
 
@@ -2008,6 +2013,13 @@ function getSelectionHandlePoints(bounds) {
     { name: 'bl', x: bx, y: by + bh },
     { name: 'l', x: bx, y: by + bh / 2 },
   ];
+}
+
+function getDeleteHandlePoint(bounds, scale = 1) {
+  return {
+    x: bounds.bx + bounds.bw + (DELETE_HANDLE_OFFSET / scale),
+    y: bounds.by - (DELETE_HANDLE_OFFSET / scale),
+  };
 }
 
 function drawSelection(layer) {
@@ -2051,6 +2063,27 @@ function drawSelection(layer) {
   ctx.fill();
   ctx.strokeStyle = 'white';
   ctx.lineWidth = 1.5/layer.scale;
+  ctx.stroke();
+
+  const deleteHandle = getDeleteHandlePoint({ bx, by, bw, bh }, layer.scale);
+  const deleteSize = Math.max(hs * 1.45, 9 / layer.scale);
+  ctx.beginPath();
+  ctx.arc(deleteHandle.x, deleteHandle.y, deleteSize, 0, Math.PI*2);
+  ctx.fillStyle = '#e30613';
+  ctx.fill();
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 1.8/layer.scale;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 2/layer.scale;
+  ctx.lineCap = 'round';
+  const crossSize = deleteSize * 0.42;
+  ctx.moveTo(deleteHandle.x - crossSize, deleteHandle.y - crossSize);
+  ctx.lineTo(deleteHandle.x + crossSize, deleteHandle.y + crossSize);
+  ctx.moveTo(deleteHandle.x + crossSize, deleteHandle.y - crossSize);
+  ctx.lineTo(deleteHandle.x - crossSize, deleteHandle.y + crossSize);
   ctx.stroke();
 
   ctx.restore();
@@ -2447,7 +2480,7 @@ function updateTransform(prop, val) {
 }
 
 function deleteLayer(id, e) {
-  e.stopPropagation();
+  if (e) e.stopPropagation();
   saveHistory();
   layers = layers.filter(l => l.id !== id);
   if (selectedId === id) selectedId = layers.length ? layers[layers.length-1].id : null;
@@ -2482,6 +2515,11 @@ function getSelectionHit(layer, x, y) {
   const [lx, ly] = getLayerLocalPoint(layer, x, y);
   const bounds = getSelectionBounds(layer);
   const hitSize = HANDLE_HIT_SIZE / layer.scale;
+
+  const deleteHandle = getDeleteHandlePoint(bounds, layer.scale);
+  if (Math.hypot(lx - deleteHandle.x, ly - deleteHandle.y) <= hitSize * 1.1) {
+    return { type: 'delete' };
+  }
 
   const rotateX = bounds.bx + bounds.bw / 2;
   const rotateY = bounds.by - (ROTATE_HANDLE_OFFSET / layer.scale);
@@ -2533,6 +2571,7 @@ function getLayerAt(x, y) {
 
 function interactionCursor(hit) {
   if (!hit) return null;
+  if (hit.type === 'delete') return 'pointer';
   if (hit.type === 'rotate') return 'grab';
   if (['t', 'b'].includes(hit.handle)) return 'ns-resize';
   if (['l', 'r'].includes(hit.handle)) return 'ew-resize';
@@ -2560,6 +2599,14 @@ function beginCanvasInteraction(e) {
   if (hit) {
     selectedId = hit.id;
     if (!selectionHit) selectionHit = getSelectionHit(hit, x, y);
+
+    if (selectionHit?.type === 'delete') {
+      deleteLayer(hit.id);
+      activeInteraction = null;
+      canvas.style.cursor = 'default';
+      return;
+    }
+
     saveHistory();
 
     if (selectionHit?.type === 'resize') {
