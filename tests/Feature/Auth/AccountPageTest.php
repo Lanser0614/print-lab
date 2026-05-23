@@ -32,10 +32,38 @@ class AccountPageTest extends TestCase
         $this->actingAs($user)
             ->get(route('account.index'))
             ->assertOk()
+            ->assertSee('pl-topbar', false)
+            ->assertSee('pl-header', false)
+            ->assertSee('pl-nav', false)
+            ->assertSee('pl-account-page', false)
+            ->assertSee('pl-account-order', false)
             ->assertSee('#'.$ownOrder->id)
             ->assertSee('Own customer')
             ->assertDontSee('#'.$otherOrder->id)
             ->assertDontSee('Other customer');
+    }
+
+    public function test_authenticated_user_sees_order_request_detail_in_storefront_chrome(): void
+    {
+        $user = User::factory()->create();
+        $order = OrderRequest::factory()->create([
+            'user_id' => $user->id,
+            'customer_name' => 'Detail customer',
+            'customer_phone' => '+998 90 000 00 00',
+            'customer_comment' => 'Call before delivery',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('account.order-requests.show', $order))
+            ->assertOk()
+            ->assertSee('pl-topbar', false)
+            ->assertSee('pl-header', false)
+            ->assertSee('pl-nav', false)
+            ->assertSee('pl-account-detail', false)
+            ->assertSee('#'.$order->id)
+            ->assertSee('Detail customer')
+            ->assertSee('+998 90 000 00 00')
+            ->assertSee('Call before delivery');
     }
 
     public function test_authenticated_user_cannot_open_other_users_order_request(): void
