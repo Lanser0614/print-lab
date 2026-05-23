@@ -42,6 +42,8 @@ class PwaAppShellTest extends TestCase
         $response = $this->get('/ru');
 
         $response->assertOk();
+        $response->assertSee('<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">', false);
+        $response->assertSee('<link rel="icon" href="/icons/icon-192.png" type="image/png">', false);
         $response->assertSee('<link rel="manifest" href="/manifest.webmanifest">', false);
         $response->assertSee('<meta name="theme-color" content="#e30613">', false);
         $response->assertSee('<meta name="apple-mobile-web-app-capable" content="yes">', false);

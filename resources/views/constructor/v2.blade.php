@@ -69,6 +69,8 @@
 <meta name="twitter:card"        content="summary">
 <meta name="twitter:title"       content="{{ __('site.seo_constructor_title', ['product' => $productName]) }}">
 <meta name="twitter:description" content="{{ __('site.seo_constructor_description', ['product' => $productName]) }}">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/icons/icon-192.png" type="image/png">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -29,7 +29,7 @@
             <div class="pl-header-actions">
                 <x-language-switcher class="pl-language-switcher--header" />
                 <a href="{{ route('login') }}" class="pl-header-action">
-                    <span aria-hidden="true">◎</span>
+                    <span aria-hidden="true">👤</span>
                     <span>{{ __('site.topbar_login') }}</span>
                 </a>
             </div>

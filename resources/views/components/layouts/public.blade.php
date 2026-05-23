@@ -49,6 +49,8 @@
     <meta name="keywords"    content="{{ $pageKeywords }}">
     <meta name="robots"      content="index, follow">
     <link rel="canonical"    href="{{ $canonical }}">
+    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+    <link rel="icon" href="/icons/icon-192.png" type="image/png">
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 

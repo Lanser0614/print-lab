@@ -47,9 +47,9 @@
             <div class="pl-header-actions">
                 <x-language-switcher class="pl-language-switcher--header" />
                 @auth
-                    <a href="{{ route('account.index') }}" class="pl-header-action"><span aria-hidden="true">◎</span><span>{{ __('auth.my_account') }}</span></a>
+                    <a href="{{ route('account.index') }}" class="pl-header-action"><span aria-hidden="true">👤</span><span>{{ __('auth.my_account') }}</span></a>
                 @else
-                    <a href="{{ route('login') }}" class="pl-header-action"><span aria-hidden="true">◎</span><span>{{ __('site.topbar_login') }}</span></a>
+                    <a href="{{ route('login') }}" class="pl-header-action"><span aria-hidden="true">👤</span><span>{{ __('site.topbar_login') }}</span></a>
                 @endauth
             </div>
         </div>

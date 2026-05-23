@@ -31,7 +31,7 @@
             <div class="pl-header-actions">
                 <x-language-switcher class="pl-language-switcher--header" />
                 <a href="{{ route('account.index') }}" class="pl-header-action">
-                    <span aria-hidden="true">◎</span>
+                    <span aria-hidden="true">👤</span>
                     <span>{{ __('auth.my_account') }}</span>
                 </a>
             </div>

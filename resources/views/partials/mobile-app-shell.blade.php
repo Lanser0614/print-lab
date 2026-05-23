@@ -9,7 +9,7 @@
         ['label' => __('site.pwa_tab_catalog'), 'icon' => '▦', 'href' => route('catalog.index'), 'active' => request()->routeIs('catalog.*') || request()->routeIs('products.*')],
         ['label' => __('site.pwa_tab_create'), 'icon' => '+', 'href' => $createUrl, 'active' => request()->routeIs('constructor.*')],
         ['label' => __('site.pwa_tab_prints'), 'icon' => '◆', 'href' => route('catalog.index') . '#prints', 'active' => request()->routeIs('prints.*')],
-        ['label' => __('site.pwa_tab_account'), 'icon' => '◎', 'href' => auth()->check() ? route('account.index') : route('login'), 'active' => request()->routeIs('account.*') || request()->routeIs('login')],
+        ['label' => __('site.pwa_tab_account'), 'icon' => '👤', 'href' => auth()->check() ? route('account.index') : route('login'), 'active' => request()->routeIs('account.*') || request()->routeIs('login')],
     ];
 @endphp
 
