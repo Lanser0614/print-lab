@@ -14,8 +14,8 @@ RUN apt-get update \
         libzip-dev \
         default-mysql-client \
     && docker-php-ext-install intl pdo_mysql zip bcmath pcntl \
-    && pecl install redis \
-    && docker-php-ext-enable redis \
+    && pecl install redis pcov \
+    && docker-php-ext-enable redis pcov \
     && { \
         echo 'post_max_size=64M'; \
         echo 'upload_max_filesize=64M'; \

@@ -13,6 +13,8 @@ Pull request builds run tests and Docker builds, but do not push images.
 
 The manual `Deploy Production` workflow connects to the server over SSH, pulls the selected image tags, starts the Docker Compose production stack, and runs Laravel deployment commands inside the `app` container.
 
+After the production domain setup refreshes `APP_URL`, the workflow rebuilds the Laravel config cache and runs `php artisan telegram:webhook:set` inside the production `app` container. This registers the Telegram bot webhook against the current production URL.
+
 The workflow writes `.deploy.env` on the server with the exact image tags used by the current deployment.
 
 Use `latest` to deploy the newest successful `master` build, or paste a commit SHA to deploy a specific image tag.
@@ -84,6 +86,12 @@ CACHE_STORE=file
 SESSION_DRIVER=file
 QUEUE_CONNECTION=database
 REDIS_CLIENT=phpredis
+
+TELEGRAM_BOT_USERNAME=PrintLabUzBot
+TELEGRAM_BOT_TOKEN=123456:replace-with-production-token
+TELEGRAM_WEBHOOK_SECRET=replace-with-random-secret
+TELEGRAM_AUTH_DRIVER=http
+TELEGRAM_LOGIN_TOKEN_TTL=300
 ```
 
 Generate `APP_KEY` once with:

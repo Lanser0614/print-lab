@@ -163,6 +163,9 @@ jobs:
           EMAIL="${LETSENCRYPT_EMAIL}" \
           DEPLOY_PATH="${DEPLOY_PATH}" \
               bash scripts/setup-production-domain.sh
+
+          dc exec -T app php artisan config:cache
+          dc exec -T app php artisan telegram:webhook:set
           OUTER
           chmod +x /tmp/remote-deploy.sh
 
