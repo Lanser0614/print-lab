@@ -20,6 +20,9 @@ class TelegramLoginFlowTest extends TestCase
             ->assertSee('pl-nav', false)
             ->assertSee('pl-login-card', false)
             ->assertSee('Telegram orqali kirish', false)
+            ->assertSee('auth/telegram/start', false)
+            ->assertSee('telegram-login-btn', false)
+            ->assertSee('window.open(data.deep_link', false)
             ->assertSee('/uz/catalog', false)
             ->assertDontSee('Sevimlilar', false)
             ->assertDontSee('Savat', false);
