@@ -62,7 +62,7 @@
                     <span class="pl-hero-badge">{{ __('auth.my_account') }}</span>
                     <h1>{{ $displayName }}</h1>
                     @if ($user->telegram_username)
-                        <p>@{{ $user->telegram_username }}</p>
+                        <p> {{ $user->telegram_username }} </p>
                     @endif
                 </div>
             </div>
