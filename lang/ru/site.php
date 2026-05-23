@@ -228,5 +228,15 @@ return [
     // ── SEO: конструктор ─────────────────────────────────────
     'seo_constructor_title' => 'Конструктор — :product | PrintLab',
     'seo_constructor_description' => 'Создайте уникальный дизайн для :product в онлайн-конструкторе PrintLab. Добавляйте текст, фото и фигуры.',
+    'pwa_install_title' => 'Установите PrintLab',
+    'pwa_install_text' => 'Откройте PrintLab как приложение с главного экрана.',
+    'pwa_install_button' => 'Установить',
+    'pwa_install_dismiss' => 'Скрыть подсказку',
+    'pwa_nav_label' => 'Мобильная навигация PrintLab',
+    'pwa_tab_home' => 'Главная',
+    'pwa_tab_catalog' => 'Каталог',
+    'pwa_tab_create' => 'Создать',
+    'pwa_tab_prints' => 'Принты',
+    'pwa_tab_account' => 'Аккаунт',
 
 ];

@@ -55,6 +55,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
+<meta name="theme-color" content="#e30613">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PrintLab">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>{{ __('site.seo_constructor_title', ['product' => $productName]) }}</title>
 <meta name="description" content="{{ __('site.seo_constructor_description', ['product' => $productName]) }}">
 <meta name="robots" content="noindex, nofollow">
@@ -65,6 +69,8 @@
 <meta name="twitter:card"        content="summary">
 <meta name="twitter:title"       content="{{ __('site.seo_constructor_title', ['product' => $productName]) }}">
 <meta name="twitter:description" content="{{ __('site.seo_constructor_description', ['product' => $productName]) }}">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -1031,7 +1037,8 @@ body.constructor-v2 .order-title {
   }
 
   body.constructor-v2 .mobile-bottom-bar {
-    height: 64px;
+    height: calc(64px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
     box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08);
   }
 
@@ -1045,7 +1052,21 @@ body.constructor-v2 .order-title {
   body.constructor-v2 .panel-right,
   body.constructor-v2 .mobile-panel,
   body.constructor-v2 .mobile-ai-print-panel {
-    bottom: 64px;
+    bottom: calc(64px + env(safe-area-inset-bottom));
+    max-height: calc(58vh - env(safe-area-inset-bottom));
+  }
+
+  body.constructor-v2 .add-menu {
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+
+  body.constructor-v2 .order-dialog {
+    padding: 14px 12px calc(14px + env(safe-area-inset-bottom));
+  }
+
+  body.constructor-v2 .order-card {
+    max-height: calc(100dvh - 28px - env(safe-area-inset-bottom));
+    overflow-y: auto;
   }
 
   body.constructor-v2 .panel-right.mobile-open {

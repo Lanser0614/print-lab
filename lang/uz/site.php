@@ -228,5 +228,15 @@ return [
     // ── SEO: konstruktor ─────────────────────────────────────
     'seo_constructor_title' => 'Konstruktor — :product | PrintLab',
     'seo_constructor_description' => "PrintLab onlayn konstruktorida :product uchun noyob dizayn yarating. Matn, rasm va shakllar qo'shing.",
+    'pwa_install_title' => 'PrintLabni o‘rnating',
+    'pwa_install_text' => 'PrintLabni bosh ekrandan ilova kabi oching.',
+    'pwa_install_button' => 'O‘rnatish',
+    'pwa_install_dismiss' => 'Eslatmani yopish',
+    'pwa_nav_label' => 'PrintLab mobil navigatsiyasi',
+    'pwa_tab_home' => 'Bosh',
+    'pwa_tab_catalog' => 'Katalog',
+    'pwa_tab_create' => 'Yaratish',
+    'pwa_tab_prints' => 'Printlar',
+    'pwa_tab_account' => 'Akkaunt',
 
 ];

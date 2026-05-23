@@ -195,6 +195,78 @@
     font-weight: 700;
 }
 
+.pl-pwa-install {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 80;
+    display: flex;
+    max-width: 360px;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 12px;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.16);
+}
+
+.pl-pwa-install[hidden] {
+    display: none;
+}
+
+.pl-pwa-install__copy {
+    display: grid;
+    gap: 3px;
+    color: var(--black);
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.pl-pwa-install__copy strong {
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.pl-pwa-install__copy span {
+    color: var(--gray-700);
+}
+
+.pl-pwa-install__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.pl-pwa-install__button {
+    min-height: 38px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--red);
+    color: #ffffff;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.pl-pwa-install__dismiss {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--gray-200);
+    border-radius: 50%;
+    background: #ffffff;
+    color: var(--gray-700);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.pl-mobile-app-shell {
+    display: none;
+}
+
 .pl-account-page {
     min-height: calc(100vh - 76px);
     padding-bottom: 72px;
@@ -584,6 +656,10 @@
 }
 
 @media (max-width: 720px) {
+    body {
+        padding-bottom: calc(68px + env(safe-area-inset-bottom));
+    }
+
     .pl-topbar {
         display: none;
     }
@@ -669,5 +745,67 @@
     .pl-account-profile h1,
     .pl-account-detail__head h1 {
         font-size: 28px;
+    }
+
+    .pl-pwa-install {
+        right: 10px;
+        bottom: calc(78px + env(safe-area-inset-bottom));
+        left: 10px;
+        max-width: none;
+    }
+
+    .pl-pwa-install__button {
+        min-width: 96px;
+    }
+
+    .pl-mobile-app-shell {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 70;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 2px;
+        border-top: 1px solid var(--gray-200);
+        background: rgba(255, 255, 255, 0.96);
+        padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+        box-shadow: 0 -12px 28px rgba(0, 0, 0, 0.08);
+        backdrop-filter: blur(16px);
+    }
+
+    .pl-mobile-app-shell__item {
+        min-width: 0;
+        min-height: 52px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        border-radius: 8px;
+        color: var(--gray-700);
+        font-size: 10px;
+        font-weight: 800;
+        line-height: 1.1;
+        text-align: center;
+    }
+
+    .pl-mobile-app-shell__item.is-active {
+        background: #fff1f2;
+        color: var(--red);
+    }
+
+    .pl-mobile-app-shell__icon {
+        display: block;
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    .pl-mobile-app-shell__label {
+        display: block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }

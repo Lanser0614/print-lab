@@ -25,6 +25,19 @@ Route::get('/', function (Request $request) {
     return redirect()->route('home', ['locale' => $locale]);
 });
 
+Route::get('/manifest.webmanifest', function () {
+    return response(file_get_contents(public_path('manifest.webmanifest')), 200, [
+        'Content-Type' => 'application/manifest+json',
+    ]);
+});
+
+Route::get('/sw.js', function () {
+    return response(file_get_contents(public_path('sw.js')), 200, [
+        'Content-Type' => 'application/javascript',
+        'Service-Worker-Allowed' => '/',
+    ]);
+});
+
 Route::get('/language/{locale}', function (string $locale) {
     if (in_array($locale, ['ru', 'uz'], true)) {
         session(['locale' => $locale]);
