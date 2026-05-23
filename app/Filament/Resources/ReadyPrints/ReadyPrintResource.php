@@ -23,6 +23,7 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Forms\Components\FileUpload;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Forms\Components\Placeholder;
 use Filament\Schemas\Components\Utilities\Set;
 use App\Filament\Resources\ReadyPrints\Pages\EditReadyPrint;
 use App\Filament\Resources\ReadyPrints\Pages\ListReadyPrints;
@@ -44,7 +45,7 @@ class ReadyPrintResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with('category');
+        return parent::getEloquentQuery()->with(['category', 'orderRequest']);
     }
 
     public static function form(Schema $schema): Schema
@@ -85,6 +86,12 @@ class ReadyPrintResource extends Resource
                             ->preload()
                             ->searchable()
                             ->native(false),
+                        Placeholder::make('order_request_id')
+                            ->label('Источник')
+                            ->content(fn (?ReadyPrint $record): string => $record?->order_request_id
+                                ? 'Заявка #'.$record->order_request_id
+                                : 'Добавлен вручную')
+                            ->columnSpanFull(),
                         Toggle::make('is_active')
                             ->label('Активен')
                             ->default(true),
@@ -117,6 +124,13 @@ class ReadyPrintResource extends Resource
                     ->label('Категория')
                     ->badge()
                     ->sortable(),
+                TextColumn::make('orderRequest.id')
+                    ->label('Заявка')
+                    ->formatStateUsing(fn (mixed $state): string => $state ? '#'.$state : '-')
+                    ->url(fn (ReadyPrint $record): ?string => $record->orderRequest
+                        ? route('filament.admin.resources.order-requests.edit', $record->orderRequest)
+                        : null)
+                    ->openUrlInNewTab(),
                 IconColumn::make('is_active')
                     ->label('Активен')
                     ->boolean(),

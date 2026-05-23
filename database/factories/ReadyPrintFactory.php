@@ -18,6 +18,8 @@ class ReadyPrintFactory extends Factory
 
         return [
             'category_id' => Category::factory(),
+            'order_request_id' => null,
+            'source_design_id' => null,
             'title' => $title,
             'title_translations' => [
                 'ru' => $title,

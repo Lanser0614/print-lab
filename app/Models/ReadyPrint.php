@@ -13,7 +13,16 @@ class ReadyPrint extends Model
     /** @use HasFactory<ReadyPrintFactory> */
     use HasFactory;
 
-    protected $fillable = ['category_id', 'title', 'title_translations', 'slug', 'image_path', 'is_active'];
+    protected $fillable = [
+        'category_id',
+        'order_request_id',
+        'source_design_id',
+        'title',
+        'title_translations',
+        'slug',
+        'image_path',
+        'is_active',
+    ];
 
     protected $casts = [
         'title_translations' => 'array',
@@ -27,6 +36,16 @@ class ReadyPrint extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function orderRequest(): BelongsTo
+    {
+        return $this->belongsTo(OrderRequest::class);
+    }
+
+    public function sourceDesign(): BelongsTo
+    {
+        return $this->belongsTo(Design::class, 'source_design_id');
     }
 
     public function getImageUrlAttribute(): string

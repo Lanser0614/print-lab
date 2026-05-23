@@ -8,6 +8,7 @@ use Database\Factories\OrderRequestFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\UseCases\ReadyPrints\CreateReadyPrintFromOrderRequestUseCase;
 
 class OrderRequest extends Model
 {
@@ -41,6 +42,17 @@ class OrderRequest extends Model
             'cancelled_at' => 'datetime',
             'paid_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::updated(function (OrderRequest $orderRequest): void {
+            if (! $orderRequest->wasChanged('status') || $orderRequest->status !== OrderRequestStatus::Ready) {
+                return;
+            }
+
+            app(CreateReadyPrintFromOrderRequestUseCase::class)->handle($orderRequest);
+        });
     }
 
     public function assignedAdmin(): BelongsTo

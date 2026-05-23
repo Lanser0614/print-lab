@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use Filament\Panel;
-use Filament\Models\Contracts\FilamentUser;
 use Database\Factories\UserFactory;
 use Illuminate\Notifications\Notifiable;
+use Filament\Models\Contracts\FilamentUser;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
