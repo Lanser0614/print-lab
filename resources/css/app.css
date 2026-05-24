@@ -548,6 +548,187 @@
     font-weight: 900;
 }
 
+.pl-print-detail-page {
+    background: #f7f7f7;
+}
+
+.pl-print-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+    color: var(--gray-500);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.pl-print-breadcrumb a {
+    color: var(--gray-700);
+}
+
+.pl-print-breadcrumb a:hover {
+    color: var(--red);
+}
+
+.pl-print-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr);
+    gap: 28px;
+    align-items: stretch;
+}
+
+.pl-print-preview,
+.pl-print-info {
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.pl-print-preview {
+    min-height: 520px;
+    display: grid;
+    place-items: center;
+    padding: 34px;
+}
+
+.pl-print-preview img {
+    width: 100%;
+    max-height: 560px;
+    object-fit: contain;
+}
+
+.pl-print-info {
+    display: flex;
+    flex-direction: column;
+    padding: 32px;
+}
+
+.pl-print-badge {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 30px;
+    align-items: center;
+    border-radius: 999px;
+    background: rgba(227, 6, 19, 0.08);
+    color: var(--red);
+    padding: 0 12px;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.pl-print-info h1 {
+    margin: 16px 0 0;
+    color: var(--black);
+    font-size: 42px;
+    line-height: 1.02;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+}
+
+.pl-print-info p {
+    margin: 12px 0 0;
+    color: var(--gray-500);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.pl-print-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 24px 0 0;
+}
+
+.pl-print-meta div,
+.pl-print-trust div {
+    border-radius: 8px;
+    background: #f7f7f7;
+    padding: 14px;
+}
+
+.pl-print-meta dt {
+    color: var(--gray-500);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.pl-print-meta dd {
+    margin: 6px 0 0;
+    color: var(--black);
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.pl-print-actions {
+    display: grid;
+    gap: 10px;
+    margin-top: 28px;
+}
+
+.pl-print-primary,
+.pl-print-secondary {
+    display: inline-flex;
+    min-height: 50px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    padding: 0 18px;
+    font-size: 15px;
+    font-weight: 900;
+    transition: background 160ms ease, color 160ms ease, transform 160ms ease, border-color 160ms ease;
+}
+
+.pl-print-primary {
+    background: var(--red);
+    color: #ffffff;
+}
+
+.pl-print-primary:hover {
+    background: var(--black);
+    transform: translateY(-1px);
+}
+
+.pl-print-secondary {
+    border: 1px solid var(--gray-200);
+    background: #ffffff;
+    color: var(--black);
+}
+
+.pl-print-secondary:hover {
+    border-color: var(--black);
+    transform: translateY(-1px);
+}
+
+.pl-print-trust {
+    display: grid;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 28px;
+}
+
+.pl-print-trust strong,
+.pl-print-trust span {
+    display: block;
+}
+
+.pl-print-trust strong {
+    color: var(--black);
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.pl-print-trust span {
+    margin-top: 4px;
+    color: var(--gray-500);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
 @keyframes printlab-footer-scan {
     0% {
         transform: translateX(0);
@@ -653,6 +834,14 @@
     .pl-account-orders {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .pl-print-detail {
+        grid-template-columns: 1fr;
+    }
+
+    .pl-print-preview {
+        min-height: 420px;
+    }
 }
 
 @media (max-width: 720px) {
@@ -743,8 +932,27 @@
     }
 
     .pl-account-profile h1,
-    .pl-account-detail__head h1 {
+    .pl-account-detail__head h1,
+    .pl-print-info h1 {
         font-size: 28px;
+    }
+
+    .pl-print-breadcrumb {
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .pl-print-preview {
+        min-height: 320px;
+        padding: 20px;
+    }
+
+    .pl-print-info {
+        padding: 22px;
+    }
+
+    .pl-print-meta {
+        grid-template-columns: 1fr;
     }
 
     .pl-pwa-install {
