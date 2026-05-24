@@ -26,6 +26,20 @@ class OrderRequestForm
                         TextInput::make('customer_phone')->label('Телефон')->required(),
                         Textarea::make('customer_comment')->label('Комментарий')->columnSpanFull(),
                     ]),
+                Section::make('Доставка')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('customer_city')->label('Город')->disabled(),
+                        Placeholder::make('delivery_coordinates')
+                            ->label('Координаты')
+                            ->content(fn (?OrderRequest $record): string => $record && $record->delivery_lat && $record->delivery_lng
+                                ? $record->delivery_lat.', '.$record->delivery_lng
+                                : '-'),
+                        Textarea::make('customer_address')->label('Адрес доставки')->required()->columnSpanFull(),
+                        View::make('filament.order-request-delivery-map')
+                            ->viewData(fn (?OrderRequest $record): array => ['record' => $record])
+                            ->columnSpanFull(),
+                    ]),
                 Section::make('Заявка')
                     ->columns(3)
                     ->schema([

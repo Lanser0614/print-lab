@@ -46,6 +46,7 @@ class PwaAppShellTest extends TestCase
         $response->assertSee('<link rel="icon" href="/icons/icon-192.png" type="image/png">', false);
         $response->assertSee('<link rel="manifest" href="/manifest.webmanifest">', false);
         $response->assertSee('<meta name="theme-color" content="#e30613">', false);
+        $response->assertSee('<meta name="mobile-web-app-capable" content="yes">', false);
         $response->assertSee('<meta name="apple-mobile-web-app-capable" content="yes">', false);
         $response->assertSee('<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">', false);
         $response->assertSee('data-pwa-install-prompt', false);

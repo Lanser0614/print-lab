@@ -29,7 +29,9 @@ self.addEventListener('activate', (event) => {
 function isUnsafeRequest(request) {
   const url = new URL(request.url);
 
-  return request.method !== 'GET'
+  return !['http:', 'https:'].includes(url.protocol)
+    || url.origin !== self.location.origin
+    || request.method !== 'GET'
     || url.pathname.startsWith('/api/')
     || url.pathname.includes('/auth/')
     || url.pathname.includes('/order-requests')
@@ -43,7 +45,7 @@ async function networkFirst(request) {
     const response = await fetch(request);
 
     if (response.ok && request.method === 'GET') {
-      cache.put(request, response.clone());
+      await cache.put(request, response.clone()).catch(() => undefined);
     }
 
     return response;
@@ -54,7 +56,10 @@ async function networkFirst(request) {
       return cached;
     }
 
-    throw error;
+    return new Response('', {
+      status: 504,
+      statusText: 'Gateway Timeout',
+    });
   }
 }
 

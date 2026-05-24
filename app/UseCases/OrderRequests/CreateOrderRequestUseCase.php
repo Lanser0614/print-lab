@@ -38,6 +38,8 @@ final readonly class CreateOrderRequestUseCase
                 'customer_comment' => $data->customerComment,
                 'customer_city' => $data->customerCity,
                 'customer_address' => $data->customerAddress,
+                'delivery_lat' => $data->deliveryLat,
+                'delivery_lng' => $data->deliveryLng,
                 'currency' => 'UZS',
             ]);
 
