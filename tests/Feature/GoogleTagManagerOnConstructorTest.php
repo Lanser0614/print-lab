@@ -80,6 +80,10 @@ class GoogleTagManagerOnConstructorTest extends TestCase
         $response = $this->postJson(route('order-requests.store'), [
             'customer_name' => 'Doniyor',
             'customer_phone' => '+998901234567',
+            'customer_city' => 'Tashkent',
+            'customer_address' => 'Tashkent, Chilanzar 10',
+            'delivery_lat' => 41.2995,
+            'delivery_lng' => 69.2401,
             'product_id' => $product->id,
             'variant_id' => $variant->id,
             'quantity' => 1,

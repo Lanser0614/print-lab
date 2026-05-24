@@ -23,6 +23,8 @@ class OrderRequest extends Model
         'customer_comment',
         'customer_city',
         'customer_address',
+        'delivery_lat',
+        'delivery_lng',
         'assigned_admin_id',
         'total_amount',
         'currency',
@@ -41,6 +43,8 @@ class OrderRequest extends Model
             'approved_at' => 'datetime',
             'cancelled_at' => 'datetime',
             'paid_at' => 'datetime',
+            'delivery_lat' => 'decimal:7',
+            'delivery_lng' => 'decimal:7',
         ];
     }
 

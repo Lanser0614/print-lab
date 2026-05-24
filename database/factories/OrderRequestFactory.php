@@ -18,6 +18,10 @@ class OrderRequestFactory extends Factory
             'customer_name' => fake()->name(),
             'customer_phone' => fake()->phoneNumber(),
             'customer_comment' => null,
+            'customer_city' => 'Tashkent',
+            'customer_address' => 'Tashkent, Chilanzar 10',
+            'delivery_lat' => 41.2995,
+            'delivery_lng' => 69.2401,
             'currency' => 'UZS',
         ];
     }

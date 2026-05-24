@@ -35,6 +35,7 @@ class OrderRequestStoreTest extends TestCase
             'customer_name' => 'Doniyor',
             'customer_phone' => '+998901234567',
             'customer_comment' => 'Позвонить после 18:00',
+            ...$this->validDeliveryData(),
             'product_id' => $product->id,
             'variant_id' => $variant->id,
             'quantity' => 1,
@@ -78,6 +79,11 @@ class OrderRequestStoreTest extends TestCase
             ->assertJsonPath('data.status', OrderRequestStatus::New->value);
 
         $this->assertSame(1, OrderRequest::query()->count());
+        $orderRequest = OrderRequest::query()->firstOrFail();
+        $this->assertSame('Tashkent', $orderRequest->customer_city);
+        $this->assertSame('Tashkent, Chilanzar 10', $orderRequest->customer_address);
+        $this->assertSame('41.2995000', $orderRequest->delivery_lat);
+        $this->assertSame('69.2401000', $orderRequest->delivery_lng);
         $this->assertSame(1, Design::query()->count());
         $this->assertSame(1, DesignTextLayer::query()->count());
 
@@ -98,6 +104,7 @@ class OrderRequestStoreTest extends TestCase
         $this->postJson(route('order-requests.store'), [
             'customer_name' => 'Doniyor',
             'customer_phone' => '+998901234567',
+            ...$this->validDeliveryData(),
             'product_id' => $product->id,
             'variant_id' => $variant->id,
             'quantity' => 1,
@@ -122,6 +129,7 @@ class OrderRequestStoreTest extends TestCase
         $this->postJson(route('order-requests.store'), [
             'customer_name' => 'Doniyor',
             'customer_phone' => '+998901234567',
+            ...$this->validDeliveryData(),
             'product_id' => $product->id,
             'variant_id' => $variant->id,
             'quantity' => 1,
@@ -159,6 +167,7 @@ class OrderRequestStoreTest extends TestCase
         $this->postJson(route('order-requests.store'), [
             'customer_name' => 'Doniyor',
             'customer_phone' => '+998901234567',
+            ...$this->validDeliveryData(),
             'product_id' => $product->id,
             'variant_id' => $variant->id,
             'quantity' => 1,
@@ -198,6 +207,61 @@ class OrderRequestStoreTest extends TestCase
         $this->assertSame(1, Design::query()->where('side', 'back')->firstOrFail()->assets()->count());
     }
 
+    public function test_it_rejects_order_request_without_delivery_address(): void
+    {
+        $product = Product::factory()->create();
+        $variant = ProductVariant::factory()->for($product)->create();
+        ProductPrintArea::factory()->for($variant)->create(['side' => 'front']);
+
+        $this->postJson(route('order-requests.store'), [
+            'customer_name' => 'Doniyor',
+            'customer_phone' => '+998901234567',
+            'customer_city' => 'Tashkent',
+            'delivery_lat' => 41.2995,
+            'delivery_lng' => 69.2401,
+            'product_id' => $product->id,
+            'variant_id' => $variant->id,
+            'quantity' => 1,
+            'side' => 'front',
+            'canvas_json' => [
+                'layers' => [],
+                'print_area' => ['x' => 0.32, 'y' => 0.27, 'width' => 0.36, 'height' => 0.42, 'unit' => 'ratio'],
+            ],
+            'preview_image' => $this->fakeBase64Png(),
+            'print_image' => $this->fakeBase64Png(),
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('customer_address');
+    }
+
+    public function test_it_rejects_order_request_outside_tashkent(): void
+    {
+        $product = Product::factory()->create();
+        $variant = ProductVariant::factory()->for($product)->create();
+        ProductPrintArea::factory()->for($variant)->create(['side' => 'front']);
+
+        $this->postJson(route('order-requests.store'), [
+            'customer_name' => 'Doniyor',
+            'customer_phone' => '+998901234567',
+            'customer_city' => 'Tashkent',
+            'customer_address' => 'Samarkand',
+            'delivery_lat' => 39.6542,
+            'delivery_lng' => 66.9597,
+            'product_id' => $product->id,
+            'variant_id' => $variant->id,
+            'quantity' => 1,
+            'side' => 'front',
+            'canvas_json' => [
+                'layers' => [],
+                'print_area' => ['x' => 0.32, 'y' => 0.27, 'width' => 0.36, 'height' => 0.42, 'unit' => 'ratio'],
+            ],
+            'preview_image' => $this->fakeBase64Png(),
+            'print_image' => $this->fakeBase64Png(),
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('delivery_lat');
+    }
+
     public function test_html_order_request_redirects_to_localized_home_catalog(): void
     {
         Storage::fake('public');
@@ -209,6 +273,7 @@ class OrderRequestStoreTest extends TestCase
         $this->post('/ru/order-requests', [
             'customer_name' => 'Doniyor',
             'customer_phone' => '+998901234567',
+            ...$this->validDeliveryData(),
             'product_id' => $product->id,
             'variant_id' => $variant->id,
             'quantity' => 1,
@@ -228,6 +293,19 @@ class OrderRequestStoreTest extends TestCase
             'preview_image' => $this->fakeBase64Png(),
             'print_image' => $this->fakeBase64Png(),
         ])->assertRedirect('/ru');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function validDeliveryData(): array
+    {
+        return [
+            'customer_city' => 'Tashkent',
+            'customer_address' => 'Tashkent, Chilanzar 10',
+            'delivery_lat' => 41.2995,
+            'delivery_lng' => 69.2401,
+        ];
     }
 
     private function fakeBase64Png(): string

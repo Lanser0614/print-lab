@@ -32,6 +32,11 @@ class OrderRequestsTable
                 TextColumn::make('customer_phone')
                     ->label('Телефон')
                     ->searchable(),
+                TextColumn::make('customer_address')
+                    ->label('Адрес')
+                    ->limit(40)
+                    ->searchable()
+                    ->placeholder('-'),
                 TextColumn::make('product_snapshot')
                     ->label('Товар')
                     ->getStateUsing(fn (OrderRequest $record): string => $record->items->first()?->product_name_snapshot ?? '-')

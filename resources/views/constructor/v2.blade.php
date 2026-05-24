@@ -46,6 +46,12 @@
             'storeOrderRequest' => route('order-requests.store'),
             'success' => route('home'),
         ],
+        'delivery' => [
+            'city' => 'Tashkent',
+            'center' => ['lat' => 41.2995, 'lng' => 69.2401],
+            'zoom' => 12,
+            'yandexMapsApiKey' => config('services.yandex_maps.api_key'),
+        ],
     ];
 @endphp
 <!DOCTYPE html>
@@ -56,6 +62,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="theme-color" content="#e30613">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="PrintLab">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -76,6 +83,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+@if (config('services.yandex_maps.api_key'))
+<script src="https://api-maps.yandex.ru/2.1/?apikey={{ urlencode(config('services.yandex_maps.api_key')) }}&lang=ru_RU"></script>
+@endif
 <script>window.constructorConfig = {{ Illuminate\Support\Js::from($constructorConfig) }};</script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -472,6 +482,8 @@ input[type=color] { width: 36px; height: 30px; border-radius: 6px; border: 1px s
 .order-dialog.open { display: flex; }
 .order-card {
   width: min(440px, calc(100vw - 24px));
+  max-height: min(760px, calc(100dvh - 24px));
+  overflow-y: auto;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -487,6 +499,29 @@ input[type=color] { width: 36px; height: 30px; border-radius: 6px; border: 1px s
   font-family: 'DM Sans', sans-serif; outline: none;
 }
 .order-field textarea { min-height: 88px; resize: vertical; }
+.order-delivery-map {
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface2);
+}
+.order-delivery-tools {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.order-delivery-tools .btn {
+  width: 100%;
+  justify-content: center;
+}
+.order-delivery-hint {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
 .order-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
 .order-error { display: none; color: var(--accent2); font-size: 12px; line-height: 1.4; margin-top: 8px; }
 .order-error.show { display: block; }
@@ -1392,6 +1427,18 @@ body.constructor-v2 .order-title {
     <div class="order-field">
       <label for="customerPhone">{{ __('site.order_phone') }}</label>
       <input id="customerPhone" name="customer_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="17" placeholder="+998 __ ___ __ __" required>
+    </div>
+    <div class="order-field">
+      <label for="customerAddress">{{ __('site.order_delivery_address') }}</label>
+      <textarea id="customerAddress" name="customer_address" maxlength="2000" required placeholder="{{ __('site.order_delivery_address_placeholder') }}"></textarea>
+      <input id="customerCity" name="customer_city" type="hidden" value="Tashkent">
+      <input id="deliveryLat" name="delivery_lat" type="hidden" required>
+      <input id="deliveryLng" name="delivery_lng" type="hidden" required>
+      <div class="order-delivery-map" id="deliveryMap" aria-label="{{ __('site.order_delivery_map') }}"></div>
+      <div class="order-delivery-tools">
+        <button class="btn btn-ghost" type="button" onclick="requestDeliveryLocation()">{{ __('site.order_use_gps') }}</button>
+      </div>
+      <div class="order-delivery-hint" id="deliveryMapHint">{{ __('site.order_delivery_map_hint') }}</div>
     </div>
     <div class="order-field">
       <label for="customerComment">{{ __('site.order_comment') }}</label>
@@ -3214,9 +3261,120 @@ async function buildOrderDesigns() {
   return designs;
 }
 
+let deliveryMap;
+let deliveryMarker;
+let deliveryMapInitialized = false;
+const deliveryAreaPolygon = [
+  [41.3970, 69.1300],
+  [41.4210, 69.2450],
+  [41.3950, 69.3700],
+  [41.3350, 69.4050],
+  [41.2450, 69.3600],
+  [41.1900, 69.2550],
+  [41.2200, 69.1450],
+  [41.3000, 69.1050],
+];
+
+function deliveryAreaContains(lat, lng) {
+  let inside = false;
+  for (let i = 0, j = deliveryAreaPolygon.length - 1; i < deliveryAreaPolygon.length; j = i++) {
+    const [yi, xi] = deliveryAreaPolygon[i];
+    const [yj, xj] = deliveryAreaPolygon[j];
+    const intersects = ((yi > lat) !== (yj > lat)) && (lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi);
+    if (intersects) inside = !inside;
+  }
+  return inside;
+}
+
+function setDeliveryHint(message, isError = false) {
+  const hint = document.getElementById('deliveryMapHint');
+  hint.textContent = message;
+  hint.style.color = isError ? 'var(--accent2)' : 'var(--muted)';
+}
+
+function setDeliveryPoint(lat, lng, resolveAddress = true) {
+  document.getElementById('deliveryLat').value = lat.toFixed(7);
+  document.getElementById('deliveryLng').value = lng.toFixed(7);
+
+  if (deliveryMarker) {
+    deliveryMarker.geometry.setCoordinates([lat, lng]);
+  }
+  if (deliveryMap) {
+    deliveryMap.setCenter([lat, lng], Math.max(deliveryMap.getZoom(), 14));
+  }
+
+  if (!deliveryAreaContains(lat, lng)) {
+    setDeliveryHint(@json(__('site.order_delivery_outside_tashkent')), true);
+    return;
+  }
+
+  setDeliveryHint(@json(__('site.order_delivery_map_hint')));
+
+  if (resolveAddress && window.ymaps?.geocode) {
+    ymaps.geocode([lat, lng], { results: 1 }).then((result) => {
+      const first = result.geoObjects.get(0);
+      const address = first?.getAddressLine?.();
+      const addressInput = document.getElementById('customerAddress');
+      if (address && !addressInput.value.trim()) addressInput.value = address;
+    }).catch(() => {});
+  }
+}
+
+function initDeliveryMap() {
+  if (deliveryMapInitialized) return;
+
+  const mapElement = document.getElementById('deliveryMap');
+  const center = constructorConfig.delivery?.center || { lat: 41.2995, lng: 69.2401 };
+
+  if (!constructorConfig.delivery?.yandexMapsApiKey || !window.ymaps) {
+    mapElement.textContent = @json(__('site.order_delivery_map_unavailable'));
+    mapElement.style.display = 'grid';
+    mapElement.style.placeItems = 'center';
+    mapElement.style.padding = '16px';
+    setDeliveryHint(@json(__('site.order_delivery_map_unavailable')), true);
+    return;
+  }
+
+  deliveryMapInitialized = true;
+  ymaps.ready(() => {
+    deliveryMap = new ymaps.Map('deliveryMap', {
+      center: [center.lat, center.lng],
+      zoom: constructorConfig.delivery?.zoom || 12,
+      controls: ['zoomControl', 'geolocationControl'],
+    });
+    deliveryMarker = new ymaps.Placemark([center.lat, center.lng], {}, { draggable: true });
+    deliveryMap.geoObjects.add(deliveryMarker);
+    deliveryMarker.events.add('dragend', () => {
+      const [lat, lng] = deliveryMarker.geometry.getCoordinates();
+      setDeliveryPoint(lat, lng);
+    });
+    deliveryMap.events.add('click', (event) => {
+      const [lat, lng] = event.get('coords');
+      setDeliveryPoint(lat, lng);
+    });
+    setDeliveryPoint(center.lat, center.lng, false);
+    requestDeliveryLocation();
+  });
+}
+
+function requestDeliveryLocation() {
+  if (!navigator.geolocation) {
+    setDeliveryHint(@json(__('site.order_gps_unavailable')), true);
+    return;
+  }
+
+  setDeliveryHint(@json(__('site.order_gps_requesting')));
+  navigator.geolocation.getCurrentPosition(
+    (position) => setDeliveryPoint(position.coords.latitude, position.coords.longitude),
+    () => setDeliveryHint(@json(__('site.order_gps_denied'))),
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+  );
+}
+
 function openOrderDialog() {
   document.getElementById('orderDialog').classList.add('open');
   document.getElementById('customerName').focus();
+  initDeliveryMap();
 }
 
 function closeOrderDialog() {
@@ -3239,10 +3397,24 @@ async function submitOrderRequest(evt) {
     return;
   }
 
+  const deliveryLat = document.getElementById('deliveryLat').value;
+  const deliveryLng = document.getElementById('deliveryLng').value;
+  const deliveryAddress = document.getElementById('customerAddress').value.trim();
+
+  if (!deliveryAddress || !deliveryLat || !deliveryLng || !deliveryAreaContains(Number(deliveryLat), Number(deliveryLng))) {
+    err.textContent = @json(__('site.order_delivery_required'));
+    err.classList.add('show');
+    return;
+  }
+
   const payload = {
     customer_name: document.getElementById('customerName').value,
     customer_phone: document.getElementById('customerPhone').value,
     customer_comment: document.getElementById('customerComment').value,
+    customer_city: document.getElementById('customerCity').value,
+    customer_address: deliveryAddress,
+    delivery_lat: deliveryLat,
+    delivery_lng: deliveryLng,
     product_id: constructorConfig.product.id,
     variant_id: constructorConfig.variant.id,
     quantity: 1,

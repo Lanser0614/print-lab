@@ -6,19 +6,29 @@ use App\Support\DataUrlImage;
 use App\Models\ProductVariant;
 use App\Models\ProductPrintArea;
 use Illuminate\Validation\Validator;
+use App\Support\Geo\TashkentDeliveryArea;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
 
 class StoreOrderRequestRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'customer_city' => TashkentDeliveryArea::normalizeCity($this->input('customer_city')),
+        ]);
+    }
+
     public function rules(): array
     {
         return [
             'customer_name' => ['required', 'string', 'max:255'],
             'customer_phone' => ['required', 'string', 'max:32'],
             'customer_comment' => ['nullable', 'string', 'max:2000'],
-            'customer_city' => ['nullable', 'string', 'max:255'],
-            'customer_address' => ['nullable', 'string', 'max:2000'],
+            'customer_city' => ['required', 'string', 'in:Tashkent'],
+            'customer_address' => ['required', 'string', 'max:2000'],
+            'delivery_lat' => ['required', 'numeric', 'between:-90,90'],
+            'delivery_lng' => ['required', 'numeric', 'between:-180,180'],
             'product_id' => ['required', 'integer', 'exists:products,id'],
             'variant_id' => ['required', 'integer', 'exists:product_variants,id'],
             'quantity' => ['required', 'integer', 'min:1', 'max:100'],
@@ -58,6 +68,10 @@ class StoreOrderRequestRequest extends FormRequest
 
                 if (! $variant || $variant->product_id !== $this->integer('product_id')) {
                     $validator->errors()->add('variant_id', 'The selected variant does not belong to the product.');
+                }
+
+                if (! TashkentDeliveryArea::contains((float) $this->input('delivery_lat'), (float) $this->input('delivery_lng'))) {
+                    $validator->errors()->add('delivery_lat', 'Delivery is available only within Tashkent.');
                 }
 
                 $seenSides = [];

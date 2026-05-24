@@ -45,6 +45,10 @@ return [
         'container_id' => env('GTM_CONTAINER_ID', 'GTM-PQSQLKKL'),
     ],
 
+    'yandex_maps' => [
+        'api_key' => env('YANDEX_MAPS_API_KEY'),
+    ],
+
     'telegram' => [
         'driver' => env('TELEGRAM_AUTH_DRIVER', 'fake'),
         'bot_username' => env('TELEGRAM_BOT_USERNAME'),
