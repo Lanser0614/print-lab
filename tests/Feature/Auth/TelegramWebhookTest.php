@@ -3,6 +3,8 @@
 namespace Tests\Feature\Auth;
 
 use Tests\TestCase;
+use App\Models\OrderRequest;
+use App\Enums\OrderRequestStatus;
 use App\Models\TelegramLoginToken;
 use App\Services\Telegram\TelegramAuthGateway;
 use App\Services\Telegram\FakeTelegramAuthGateway;
@@ -65,5 +67,84 @@ class TelegramWebhookTest extends TestCase
         ]);
 
         $this->assertCount(1, $gateway->sentMessages);
+    }
+
+    public function test_webhook_approves_order_from_callback_query(): void
+    {
+        config()->set('services.telegram.webhook_secret', 'secret-token');
+
+        $gateway = new FakeTelegramAuthGateway('PrintLabUzBot');
+        $this->app->instance(TelegramAuthGateway::class, $gateway);
+
+        $orderRequest = OrderRequest::factory()->create([
+            'status' => OrderRequestStatus::New,
+            'approved_at' => null,
+        ]);
+
+        $this->postJson(route('telegram.webhook'), [
+            'callback_query' => [
+                'id' => 'callback-1',
+                'data' => 'order:approve:'.$orderRequest->id,
+            ],
+        ], [
+            'X-Telegram-Bot-Api-Secret-Token' => 'secret-token',
+        ])->assertOk();
+
+        $orderRequest->refresh();
+
+        $this->assertSame(OrderRequestStatus::WaitingPayment, $orderRequest->status);
+        $this->assertNotNull($orderRequest->approved_at);
+        $this->assertSame('Заказ #'.$orderRequest->id.' одобрен.', $gateway->answeredCallbackQueries[0]['text']);
+    }
+
+    public function test_webhook_answers_order_phone_from_callback_query(): void
+    {
+        config()->set('services.telegram.webhook_secret', 'secret-token');
+
+        $gateway = new FakeTelegramAuthGateway('PrintLabUzBot');
+        $this->app->instance(TelegramAuthGateway::class, $gateway);
+
+        $orderRequest = OrderRequest::factory()->create([
+            'customer_phone' => '+998901234567',
+        ]);
+
+        $this->postJson(route('telegram.webhook'), [
+            'callback_query' => [
+                'id' => 'callback-phone',
+                'data' => 'order:call:'.$orderRequest->id,
+            ],
+        ], [
+            'X-Telegram-Bot-Api-Secret-Token' => 'secret-token',
+        ])->assertOk();
+
+        $this->assertSame('Телефон: +998901234567', $gateway->answeredCallbackQueries[0]['text']);
+    }
+
+    public function test_webhook_rejects_order_from_callback_query(): void
+    {
+        config()->set('services.telegram.webhook_secret', 'secret-token');
+
+        $gateway = new FakeTelegramAuthGateway('PrintLabUzBot');
+        $this->app->instance(TelegramAuthGateway::class, $gateway);
+
+        $orderRequest = OrderRequest::factory()->create([
+            'status' => OrderRequestStatus::New,
+            'cancelled_at' => null,
+        ]);
+
+        $this->postJson(route('telegram.webhook'), [
+            'callback_query' => [
+                'id' => 'callback-2',
+                'data' => 'order:reject:'.$orderRequest->id,
+            ],
+        ], [
+            'X-Telegram-Bot-Api-Secret-Token' => 'secret-token',
+        ])->assertOk();
+
+        $orderRequest->refresh();
+
+        $this->assertSame(OrderRequestStatus::Cancelled, $orderRequest->status);
+        $this->assertNotNull($orderRequest->cancelled_at);
+        $this->assertSame('Заказ #'.$orderRequest->id.' отклонён.', $gateway->answeredCallbackQueries[0]['text']);
     }
 }

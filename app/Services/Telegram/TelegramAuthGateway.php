@@ -4,7 +4,12 @@ namespace App\Services\Telegram;
 
 interface TelegramAuthGateway
 {
-    public function sendMessage(int $chatId, string $text): void;
+    /**
+     * @param array<string, mixed> $options
+     */
+    public function sendMessage(int|string $chatId, string $text, array $options = []): void;
+
+    public function answerCallbackQuery(string $callbackQueryId, string $text): void;
 
     public function getBotUsername(): string;
 }

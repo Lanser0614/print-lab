@@ -55,6 +55,7 @@ return [
         'bot_token' => env('TELEGRAM_BOT_TOKEN'),
         'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),
         'login_token_ttl' => (int) env('TELEGRAM_LOGIN_TOKEN_TTL', 300),
+        'merchant_channel_id' => env('TELEGRAM_MERCHANT_CHANNEL_ID'),
     ],
 
 ];

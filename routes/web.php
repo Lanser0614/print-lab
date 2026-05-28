@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\OrderRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Cookie;
@@ -11,6 +12,7 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ConstructorController;
 use App\Http\Controllers\OrderRequestController;
+use App\Services\Telegram\TelegramOrderNotifier;
 use App\Http\Controllers\Auth\TelegramLoginController;
 use App\Http\Controllers\Admin\DesignDownloadController;
 use App\Http\Controllers\Auth\TelegramWebhookController;
@@ -93,7 +95,157 @@ Route::middleware('auth')
         Route::get('/design-assets/{asset}', [DesignDownloadController::class, 'asset'])->name('design-assets.show');
     });
 
-Route::get('/test', function () {
+Route::get('/test', function (
+    TelegramOrderNotifier $telegramOrderNotifier
+) {
+
+    $request = new OrderRequest(
+        [
+            'user_id' => null,
+            'status' => 'new',
+            'customer_name' => 'Doniyor',
+            'customer_phone' => '+998 90 990 55 53',
+            'customer_comment' => 'test',
+            'customer_city' => 'Tashkent',
+            'customer_address' => 'hasbhjbsaj',
+            'delivery_lat' => '41.3020515',
+            'delivery_lng' => '69.1638794',
+            'currency' => 'UZS',
+            'updated_at' => '2026-05-28T11:07:19.000000Z',
+            'created_at' => '2026-05-28T11:07:19.000000Z',
+            'id' => 31,
+            'items' => [
+                [
+                    'id' => 20,
+                    'order_request_id' => 31,
+                    'product_id' => 55,
+                    'product_variant_id' => 51,
+                    'product_name_snapshot' => 'Классическая футболка',
+                    'product_type_snapshot' => 't-shirt',
+                    'color_snapshot' => 'white',
+                    'size_snapshot' => 'M',
+                    'quantity' => 1,
+                    'unit_price' => 120000,
+                    'total_price' => 120000,
+                    'created_at' => '2026-05-28T11:07:19.000000Z',
+                    'updated_at' => '2026-05-28T11:07:19.000000Z',
+                    'design' => [
+                        'id' => 21,
+                        'order_request_item_id' => 20,
+                        'side' => 'front',
+                        'canvas_json' => [
+                            'layers' => [
+                                [
+                                    'x' => 301,
+                                    'y' => 196,
+                                    'id' => '1',
+                                    'name' => 'AI-принт',
+                                    'type' => 'image',
+                                    'blend' => 'source-over',
+                                    'scale' => 1,
+                                    'width' => 235.2,
+                                    'height' => 235.2,
+                                    'opacity' => 1,
+                                    'rotation' => 0,
+                                    'generatedPrintId' => 15,
+                                    'originalFileName' => 'ai-print-15.png',
+                                    'generatedImageUrl' => 'http://localhost:8000/storage/generated-prints/faf338a6-cc3d-4b93-a86b-c58fb14578b5.png',
+                                ],
+                            ],
+                            'print_area' => [
+                                'x' => 0.32,
+                                'y' => 0.27,
+                                'side' => 'front',
+                                'unit' => 'ratio',
+                                'width' => 0.36,
+                                'height' => 0.42,
+                            ],
+                        ],
+                        'preview_image_path' => 'order-requests/previews/d1606499-e82c-4036-8e00-c997b28accdf.png',
+                        'print_image_path' => 'order-requests/prints/53a32936-9929-48c9-b5b4-dd32244a39cc.png',
+                        'created_at' => '2026-05-28T11:07:19.000000Z',
+                        'updated_at' => '2026-05-28T11:07:19.000000Z',
+                        'assets' => [
+                            [
+                                'id' => 9,
+                                'design_id' => 21,
+                                'type' => 'uploaded_image',
+                                'original_file_path' => 'order-requests/assets/eb189db6-823b-47d0-82f3-d34aedd81468.png',
+                                'file_name' => 'ai-print-15.png',
+                                'mime_type' => 'image/png',
+                                'size_bytes' => 1523906,
+                                'metadata' => [
+                                    'layer_id' => '1',
+                                ],
+                                'created_at' => '2026-05-28T11:07:19.000000Z',
+                                'updated_at' => '2026-05-28T11:07:19.000000Z',
+                            ],
+                        ],
+                        'text_layers' => [],
+                    ],
+                    'designs' => [
+                        [
+                            'id' => 21,
+                            'order_request_item_id' => 20,
+                            'side' => 'front',
+                            'canvas_json' => [
+                                'layers' => [
+                                    [
+                                        'x' => 301,
+                                        'y' => 196,
+                                        'id' => '1',
+                                        'name' => 'AI-принт',
+                                        'type' => 'image',
+                                        'blend' => 'source-over',
+                                        'scale' => 1,
+                                        'width' => 235.2,
+                                        'height' => 235.2,
+                                        'opacity' => 1,
+                                        'rotation' => 0,
+                                        'generatedPrintId' => 15,
+                                        'originalFileName' => 'ai-print-15.png',
+                                        'generatedImageUrl' => 'http://localhost:8000/storage/generated-prints/faf338a6-cc3d-4b93-a86b-c58fb14578b5.png',
+                                    ],
+                                ],
+                                'print_area' => [
+                                    'x' => 0.32,
+                                    'y' => 0.27,
+                                    'side' => 'front',
+                                    'unit' => 'ratio',
+                                    'width' => 0.36,
+                                    'height' => 0.42,
+                                ],
+                            ],
+                            'preview_image_path' => 'order-requests/previews/d1606499-e82c-4036-8e00-c997b28accdf.png',
+                            'print_image_path' => 'order-requests/prints/53a32936-9929-48c9-b5b4-dd32244a39cc.png',
+                            'created_at' => '2026-05-28T11:07:19.000000Z',
+                            'updated_at' => '2026-05-28T11:07:19.000000Z',
+                            'assets' => [
+                                [
+                                    'id' => 9,
+                                    'design_id' => 21,
+                                    'type' => 'uploaded_image',
+                                    'original_file_path' => 'order-requests/assets/eb189db6-823b-47d0-82f3-d34aedd81468.png',
+                                    'file_name' => 'ai-print-15.png',
+                                    'mime_type' => 'image/png',
+                                    'size_bytes' => 1523906,
+                                    'metadata' => [
+                                        'layer_id' => '1',
+                                    ],
+                                    'created_at' => '2026-05-28T11:07:19.000000Z',
+                                    'updated_at' => '2026-05-28T11:07:19.000000Z',
+                                ],
+                            ],
+                            'text_layers' => [],
+                        ],
+                    ],
+                ],
+            ],
+        ]
+    );
+
+    $telegramOrderNotifier->notifyNewOrder($request);
+
     return 'ok';
 });
 

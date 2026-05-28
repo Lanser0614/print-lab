@@ -10,14 +10,20 @@ use App\Models\ProductVariant;
 use App\Models\ProductPrintArea;
 use App\Enums\OrderRequestStatus;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Services\Telegram\TelegramOrderNotifier;
 use App\DTO\OrderRequests\CreateOrderRequestData;
 
 final readonly class CreateOrderRequestUseCase
 {
+    public function __construct(
+        private TelegramOrderNotifier $telegramOrderNotifier,
+    ) {}
+
     public function execute(CreateOrderRequestData $data): OrderRequest
     {
-        return DB::transaction(function () use ($data): OrderRequest {
+        $orderRequest = DB::transaction(function () use ($data): OrderRequest {
             $product = Product::query()->findOrFail($data->productId);
             $variant = ProductVariant::query()
                 ->where('product_id', $product->id)
@@ -71,6 +77,12 @@ final readonly class CreateOrderRequestUseCase
 
             return $orderRequest->load('items.design.assets', 'items.design.textLayers', 'items.designs.assets', 'items.designs.textLayers');
         });
+
+        Log::debug('test', $orderRequest->toArray());
+
+        $this->telegramOrderNotifier->notifyNewOrder($orderRequest);
+
+        return $orderRequest;
     }
 
     private function storeDataUrl(string $dataUrl, string $directory): string

@@ -33,5 +33,7 @@
         <env name="PULSE_ENABLED" value="false" force="true"/>
         <env name="TELESCOPE_ENABLED" value="false" force="true"/>
         <env name="NIGHTWATCH_ENABLED" value="false" force="true"/>
+        <env name="TELEGRAM_AUTH_DRIVER" value="fake" force="true"/>
+        <env name="TELEGRAM_MERCHANT_CHANNEL_ID" value="" force="true"/>
     </php>
 </phpunit>

@@ -6,13 +6,20 @@ final class FakeTelegramAuthGateway implements TelegramAuthGateway
 {
     public array $sentMessages = [];
 
+    public array $answeredCallbackQueries = [];
+
     public function __construct(
         private string $botUsername = 'PrintLabUzBot',
     ) {}
 
-    public function sendMessage(int $chatId, string $text): void
+    public function sendMessage(int|string $chatId, string $text, array $options = []): void
     {
-        $this->sentMessages[] = ['chat_id' => $chatId, 'text' => $text];
+        $this->sentMessages[] = ['chat_id' => $chatId, 'text' => $text, 'options' => $options];
+    }
+
+    public function answerCallbackQuery(string $callbackQueryId, string $text): void
+    {
+        $this->answeredCallbackQueries[] = ['callback_query_id' => $callbackQueryId, 'text' => $text];
     }
 
     public function getBotUsername(): string

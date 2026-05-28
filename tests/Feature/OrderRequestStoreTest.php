@@ -11,6 +11,8 @@ use App\Models\DesignTextLayer;
 use App\Models\ProductPrintArea;
 use App\Enums\OrderRequestStatus;
 use Illuminate\Support\Facades\Storage;
+use App\Services\Telegram\TelegramAuthGateway;
+use App\Services\Telegram\FakeTelegramAuthGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class OrderRequestStoreTest extends TestCase
@@ -93,6 +95,55 @@ class OrderRequestStoreTest extends TestCase
         Storage::disk('public')->assertExists($design->preview_image_path);
         Storage::disk('public')->assertExists($design->print_image_path);
         Storage::disk('public')->assertExists($design->assets()->firstOrFail()->original_file_path);
+    }
+
+    public function test_it_sends_telegram_notification_to_merchant_channel(): void
+    {
+        Storage::fake('public');
+        config()->set('services.telegram.merchant_channel_id', '-5178998724');
+
+        $gateway = new FakeTelegramAuthGateway('PrintLabUzBot');
+        $this->app->instance(TelegramAuthGateway::class, $gateway);
+
+        $product = Product::factory()->create([
+            'name' => 'T-shirt',
+            'name_translations' => ['ru' => 'Футболка'],
+        ]);
+        $variant = ProductVariant::factory()->for($product)->create([
+            'color' => 'black',
+            'size' => 'L',
+        ]);
+        ProductPrintArea::factory()->for($variant)->create(['side' => 'front']);
+
+        $this->postJson(route('order-requests.store'), [
+            'customer_name' => 'Doniyor',
+            'customer_phone' => '+998901234567',
+            'customer_comment' => 'Позвонить после 18:00',
+            ...$this->validDeliveryData(),
+            'product_id' => $product->id,
+            'variant_id' => $variant->id,
+            'quantity' => 2,
+            'side' => 'front',
+            'canvas_json' => [
+                'layers' => [],
+                'print_area' => ['x' => 0.32, 'y' => 0.27, 'width' => 0.36, 'height' => 0.42, 'unit' => 'ratio'],
+            ],
+            'preview_image' => $this->fakeBase64Png(),
+            'print_image' => $this->fakeBase64Png(),
+        ])->assertCreated();
+
+        $this->assertCount(1, $gateway->sentMessages);
+        $message = $gateway->sentMessages[0];
+
+        $this->assertSame('-5178998724', $message['chat_id']);
+        $this->assertStringContainsString('Новый заказ #', $message['text']);
+        $this->assertStringContainsString('Телефон: +998901234567', $message['text']);
+        $this->assertSame('Позвонить', $message['options']['reply_markup']['inline_keyboard'][0][0]['text']);
+        $this->assertStringStartsWith('order:call:', $message['options']['reply_markup']['inline_keyboard'][0][0]['callback_data']);
+        $this->assertSame('Одобрить', $message['options']['reply_markup']['inline_keyboard'][1][0]['text']);
+        $this->assertStringStartsWith('order:approve:', $message['options']['reply_markup']['inline_keyboard'][1][0]['callback_data']);
+        $this->assertSame('Отклонить', $message['options']['reply_markup']['inline_keyboard'][1][1]['text']);
+        $this->assertStringStartsWith('order:reject:', $message['options']['reply_markup']['inline_keyboard'][1][1]['callback_data']);
     }
 
     public function test_it_rejects_variant_from_another_product(): void
