@@ -132,18 +132,24 @@ class OrderRequestStoreTest extends TestCase
             'print_image' => $this->fakeBase64Png(),
         ])->assertCreated();
 
-        $this->assertCount(1, $gateway->sentMessages);
-        $message = $gateway->sentMessages[0];
+        $this->assertCount(0, $gateway->sentMessages);
+        $this->assertCount(1, $gateway->sentPhotos);
 
-        $this->assertSame('-5178998724', $message['chat_id']);
-        $this->assertStringContainsString('Новый заказ #', $message['text']);
-        $this->assertStringContainsString('Телефон: +998901234567', $message['text']);
-        $this->assertSame('Позвонить', $message['options']['reply_markup']['inline_keyboard'][0][0]['text']);
-        $this->assertStringStartsWith('order:call:', $message['options']['reply_markup']['inline_keyboard'][0][0]['callback_data']);
-        $this->assertSame('Одобрить', $message['options']['reply_markup']['inline_keyboard'][1][0]['text']);
-        $this->assertStringStartsWith('order:approve:', $message['options']['reply_markup']['inline_keyboard'][1][0]['callback_data']);
-        $this->assertSame('Отклонить', $message['options']['reply_markup']['inline_keyboard'][1][1]['text']);
-        $this->assertStringStartsWith('order:reject:', $message['options']['reply_markup']['inline_keyboard'][1][1]['callback_data']);
+        $photo = $gateway->sentPhotos[0];
+        $orderRequest = OrderRequest::query()->with('items.designs')->firstOrFail();
+        $design = $orderRequest->items->first()->designs->first();
+
+        $this->assertSame('-5178998724', $photo['chat_id']);
+        $this->assertStringEndsWith($design->preview_image_path, $photo['photo_path']);
+        $this->assertStringNotContainsString((string) $design->print_image_path, $photo['photo_path']);
+        $this->assertStringContainsString('Новый заказ #', $photo['caption']);
+        $this->assertStringContainsString('Телефон: +998901234567', $photo['caption']);
+        $this->assertSame('Позвонить', $photo['options']['reply_markup']['inline_keyboard'][0][0]['text']);
+        $this->assertStringStartsWith('order:call:', $photo['options']['reply_markup']['inline_keyboard'][0][0]['callback_data']);
+        $this->assertSame('Одобрить', $photo['options']['reply_markup']['inline_keyboard'][1][0]['text']);
+        $this->assertStringStartsWith('order:approve:', $photo['options']['reply_markup']['inline_keyboard'][1][0]['callback_data']);
+        $this->assertSame('Отклонить', $photo['options']['reply_markup']['inline_keyboard'][1][1]['text']);
+        $this->assertStringStartsWith('order:reject:', $photo['options']['reply_markup']['inline_keyboard'][1][1]['callback_data']);
     }
 
     public function test_it_rejects_variant_from_another_product(): void

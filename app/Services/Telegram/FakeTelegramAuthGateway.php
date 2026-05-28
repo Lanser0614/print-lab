@@ -6,6 +6,8 @@ final class FakeTelegramAuthGateway implements TelegramAuthGateway
 {
     public array $sentMessages = [];
 
+    public array $sentPhotos = [];
+
     public array $answeredCallbackQueries = [];
 
     public function __construct(
@@ -15,6 +17,16 @@ final class FakeTelegramAuthGateway implements TelegramAuthGateway
     public function sendMessage(int|string $chatId, string $text, array $options = []): void
     {
         $this->sentMessages[] = ['chat_id' => $chatId, 'text' => $text, 'options' => $options];
+    }
+
+    public function sendPhoto(int|string $chatId, string $photoPath, string $caption, array $options = []): void
+    {
+        $this->sentPhotos[] = [
+            'chat_id' => $chatId,
+            'photo_path' => $photoPath,
+            'caption' => $caption,
+            'options' => $options,
+        ];
     }
 
     public function answerCallbackQuery(string $callbackQueryId, string $text): void

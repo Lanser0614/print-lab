@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\OrderRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Cookie;
@@ -12,7 +11,6 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ConstructorController;
 use App\Http\Controllers\OrderRequestController;
-use App\Services\Telegram\TelegramOrderNotifier;
 use App\Http\Controllers\Auth\TelegramLoginController;
 use App\Http\Controllers\Admin\DesignDownloadController;
 use App\Http\Controllers\Auth\TelegramWebhookController;

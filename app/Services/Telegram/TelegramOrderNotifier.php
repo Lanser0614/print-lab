@@ -5,6 +5,7 @@ namespace App\Services\Telegram;
 use Throwable;
 use App\Models\OrderRequest;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 final readonly class TelegramOrderNotifier
 {
@@ -21,34 +22,24 @@ final readonly class TelegramOrderNotifier
         }
 
         try {
-            $orderRequest->loadMissing('items');
+            $orderRequest->loadMissing('items.designs');
 
-            $this->gateway->sendMessage(
-                $channelId,
-                $this->messageText($orderRequest),
-                [
-                    'reply_markup' => [
-                        'inline_keyboard' => [
-                            [
-                                [
-                                    'text' => 'Позвонить',
-                                    'callback_data' => 'order:call:'.$orderRequest->id,
-                                ],
-                            ],
-                            [
-                                [
-                                    'text' => 'Одобрить',
-                                    'callback_data' => 'order:approve:'.$orderRequest->id,
-                                ],
-                                [
-                                    'text' => 'Отклонить',
-                                    'callback_data' => 'order:reject:'.$orderRequest->id,
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            );
+            $text = $this->messageText($orderRequest);
+            $options = ['reply_markup' => $this->replyMarkup($orderRequest)];
+            $previewPath = $this->mainPreviewImagePath($orderRequest);
+
+            if ($previewPath && Storage::disk('public')->exists($previewPath)) {
+                $this->gateway->sendPhoto(
+                    $channelId,
+                    Storage::disk('public')->path($previewPath),
+                    $text,
+                    $options,
+                );
+
+                return;
+            }
+
+            $this->gateway->sendMessage($channelId, $text, $options);
         } catch (Throwable $exception) {
             Log::warning('Failed to send Telegram order notification.', [
                 'order_request_id' => $orderRequest->id,
@@ -56,6 +47,52 @@ final readonly class TelegramOrderNotifier
                 'exception_message' => $this->redactBotToken($exception->getMessage()),
             ]);
         }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function replyMarkup(OrderRequest $orderRequest): array
+    {
+        return [
+            'inline_keyboard' => [
+                [
+                    [
+                        'text' => 'Позвонить',
+                        'callback_data' => 'order:call:'.$orderRequest->id,
+                    ],
+                ],
+                [
+                    [
+                        'text' => 'Одобрить',
+                        'callback_data' => 'order:approve:'.$orderRequest->id,
+                    ],
+                    [
+                        'text' => 'Отклонить',
+                        'callback_data' => 'order:reject:'.$orderRequest->id,
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    private function mainPreviewImagePath(OrderRequest $orderRequest): ?string
+    {
+        $path = $orderRequest->items
+            ->flatMap(fn ($item) => $item->designs)
+            ->firstWhere('side', 'front')
+            ?->preview_image_path;
+
+        if (is_string($path) && trim($path) !== '') {
+            return $path;
+        }
+
+        $path = $orderRequest->items
+            ->flatMap(fn ($item) => $item->designs)
+            ->first()
+            ?->preview_image_path;
+
+        return is_string($path) && trim($path) !== '' ? $path : null;
     }
 
     private function messageText(OrderRequest $orderRequest): string
